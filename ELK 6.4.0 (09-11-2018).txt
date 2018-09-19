@@ -175,7 +175,7 @@ Logstash:
         				match => { "message" => "%{COMBINEDAPACHELOG}"}
     				}
     				grok {
-   				match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
+   					match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
     				}
 
     				geoip {
@@ -429,7 +429,7 @@ filter {
        }
 	
 	grok {
-    	match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
+    		match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
     	}
 
     geoip {
