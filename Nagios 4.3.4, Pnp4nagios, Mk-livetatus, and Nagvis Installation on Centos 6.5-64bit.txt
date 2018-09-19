@@ -1,0 +1,688 @@
+
+
+
+			########################################################################
+			#                                                                      #
+			#           Installing Nagios Core 4.3.4 on CentOS 6.5-64Bit           #
+			#                                                                      #
+			########################################################################
+
+
+ 
+
+Disabling Security-Enhanced Linux
+
+	This guide is based on SELinux being disabled or in permissive mode. Steps to do this are as follows.
+
+	# sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+	# setenforce 0
+ 
+
+
+Prerequisites
+
+	Perform these steps to install the pre-requisite packages.
+
+	# yum install wget httpd php gcc glibc glibc-common gd gd-devel make net-snmp libpng-devel libjpeg-turbo-devel
+	# yum install perl wget httpd php
+	# yum groupinstall "Development Tools"
+ 
+
+
+Downloading the Source
+
+	# cd /usr/local/nagios
+	# wget -O nagioscore.tar.gz https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.3.4.tar.gz
+	# tar xzf nagioscore.tar.gz
+ 
+
+
+Compile
+
+	# cd nagioscore-nagios-4.3.4/
+	# ./configure
+	# make all
+ 
+
+
+Create User And Group
+
+	This creates the nagios user and group. The apache user is also added to the nagios group.
+
+	# useradd nagios
+	# usermod -a -G nagios apache
+ 
+
+
+Install Binaries
+
+	This step installs the binary files, CGIs, and HTML files.
+
+	# make install
+ 
+
+
+Install Service / Daemon
+
+	This installs the service or daemon files and also configures them to start on boot. The Apache httpd service is also configured at this point.
+
+	===== CentOS 5.x / 6.x | RHEL 5.x / 6.x | Oracle Linux 5.x / 6.x =====
+
+		# make install-init
+		# chkconfig --add nagios
+		# chkconfig --level 2345 httpd on
+ 
+
+	===== CentOS 7.x | RHEL 7.x | Oracle Linux 7.x =====
+
+		# make install-init
+		# systemctl enable nagios.service
+		# systemctl enable httpd.service
+ 
+
+
+Information on starting and stopping services will be explained further on.
+
+ 
+
+
+Install Command Mode
+
+	This installs and configures the external command file.
+
+	# make install-commandmode
+ 
+
+
+Install Configuration Files
+
+	This installs the *SAMPLE* configuration files. These are required as Nagios needs some configuration files to allow it to start.
+
+	# make install-config
+ 
+
+
+Install Apache Config Files 
+
+	This installs the Apache web server configuration files. Also configure Apache settings if required.
+
+	# make install-webconf
+ 
+
+
+Configure Firewall
+
+	You need to allow port 80 inbound traffic on the local firewall so you can reach the Nagios Core web interface.
+
+	===== CentOS 5.x / 6.x | RHEL 5.x / 6.x | Oracle Linux 5.x / 6.x =====
+
+		# iptables -I INPUT -p tcp --destination-port 80 -j ACCEPT
+		# service iptables save
+		# ip6tables -I INPUT -p tcp --destination-port 80 -j ACCEPT
+		# service ip6tables save
+ 
+
+	===== CentOS 7.x | RHEL 7.x | Oracle Linux 7.x =====
+
+		# firewall-cmd --zone=public --add-port=80/tcp
+		# firewall-cmd --zone=public --add-port=80/tcp --permanent
+ 
+
+
+Create nagiosadmin User Account 
+
+	You'll need to create an Apache user account to be able to log into Nagios.
+	The following command will create a user account called nagiosadmin and you will be prompted to provide a password for the account.
+
+	# htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+ 
+
+******* "When adding additional users in the future, you need to remove -c from the above command otherwise it will replace the existing nagiosadmin user (and any other users you may have added)." *******
+
+ 
+
+Start Apache Web Server
+
+	===== CentOS 5.x / 6.x | RHEL 5.x / 6.x | Oracle Linux 5.x / 6.x =====
+
+		# service httpd start
+ 
+
+	===== CentOS 7.x | RHEL 7.x | Oracle Linux 7.x =====
+
+		# systemctl start httpd.service
+ 
+
+
+Start Service / Daemon
+
+	This command starts Nagios Core.
+
+	===== CentOS 5.x / 6.x | RHEL 5.x / 6.x | Oracle Linux 5.x / 6.x =====
+
+		# service nagios start
+ 
+
+	===== CentOS 7.x | RHEL 7.x | Oracle Linux 7.x =====
+
+		# systemctl start nagios.service
+ 
+
+
+Test Nagios
+
+	Nagios is now running, to confirm this you need to log into the Nagios Web Interface.
+	Point your web browser to the ip address or FQDN of your Nagios Core server, for example:
+	http://10.25.5.143/nagios
+	http://core-013.domain.local/nagios
+	You will be prompted for a username and password. The username is nagiosadmin (you created it in a previous step) and the password is what you provided earlier.
+	Once you have logged in you are presented with the Nagios interface. Congratulations you have installed Nagios Core.
+	BUT WAIT ...
+	Currently you have only installed the Nagios Core engine. You'll notice some errors under the hosts and services along the lines of:
+	(No output on stdout) stderr: execvp(/usr/local/nagios/libexec/check_load, ...) failed. errno is 2: No such file or directory 
+	These errors will be resolved once you install the Nagios Plugins, which is covered in the next step.
+
+
+
+ 
+
+			##########################################################
+			#                                                        #
+			#           Installing The Nagios Plugins 2.2.1          #
+			#                                                        #
+			##########################################################
+
+
+
+	Nagios Core needs plugins to operate properly. The following steps will walk you through installing Nagios Plugins.
+	These steps install nagios-plugins 2.2.1. Newer versions will become available in the future and you can use those in the following installation steps. Please see the releases page on GitHub for all available versions.
+	Please note that the following steps install most of the plugins that come in the Nagios Plugins package. However there are some plugins that require other libraries which are not included in those instructions. Please refer to the following KB article for detailed installation instructions:
+	Documentation - Installing Nagios Plugins From Source
+
+ 
+
+Prerequisites
+
+	Make sure that you have the following packages installed.
+
+	===== CentOS 5.x =====
+
+		# yum install -y gcc glibc glibc-common make gettext automake wget openssl-devel net-snmp net-snmp-utils epel-release
+		# yum install -y perl-Net-SNMP
+		# cd /tmp
+		# wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+		# tar xzf autoconf-2.60.tar.gz 
+		# cd /tmp/autoconf-2.60
+		# ./configure 
+		# make
+		# make install
+ 
+
+	===== CentOS 6.x / 7.x =====
+
+		# yum install -y gcc glibc glibc-common make gettext automake autoconf wget openssl-devel net-snmp net-snmp-utils epel-release
+		# yum install -y perl-Net-SNMP
+ 
+
+
+Downloading The Source  
+	
+	Download the latest version of nagios-plugins https://www.nagios.org/downloads/nagios-plugins/
+
+	# cd /ur/local/nagios
+	# wget https://nagios-plugins.org/download/nagios-plugins-2.2.1.tar.gz#_ga=2.108916994.1494523384.1508466222-491680136.1507534655
+	# tar zxf nagios-plugins-2.2.1.tar.gz
+
+ 
+
+Compile + Install
+
+	# cd nagios-plugins-2.2.1
+	# ./configure
+	# make
+	# make install
+ 
+
+Test Plugins
+
+	Point your web browser to the ip address or FQDN of your Nagios Core server, for example:
+	http://10.25.5.143/nagios
+	http://core-013.domain.local/nagios
+	Go to a host or service object and "Re-schedule the next check" under the Commands menu. The error you previously saw should now disappear and the correct output will be shown on the screen.
+
+ 
+
+Service / Daemon Commands
+
+	Different Linux distributions have different methods of starting / stopping / restarting / status Nagios.
+
+	===== CentOS 5.x / 6.x | RHEL 5.x / 6.x | Oracle Linux 5.x / 6.x =====
+
+		# service nagios start
+		# service nagios stop
+		# service nagios restart
+		# service nagios status
+ 
+
+	===== CentOS 7.x | RHEL 7.x | Oracle Linux 7.x =====
+
+		# systemctl start nagios.service
+		# systemctl stop nagios.service
+		# systemctl restart nagios.service
+		# systemctl status nagios.service
+
+
+
+
+
+			###################################################
+			#                                                 #
+			#           Installing Pnp4nagios 0.6.26          #
+			#                                                 #
+			###################################################
+
+
+
+1. Install dependencies.
+
+	The installer is located in the root directory of the NagVis package. The installer has to be made executable before you can use it:
+
+	# yum -y install rrdtool perl-rrdtool perl-Time-HiRes php-gd
+	# cd /usr/local/nagios
+
+
+
+2. Download tarball.
+
+	Download the latest version of pnp4nagios from https://sourceforge.net/projects/pnp4nagios/files/. Copy the link address then download it:
+
+	# wget https://sourceforge.net/projects/pnp4nagios/files/PNP-0.6/pnp4nagios-0.6.26.tar.gz/download
+	
+	Rename "download" file name to "pnp4nagios-X.X.X.tar.gz" :
+
+	# mv download pnp4nagios-0.6.26.tar.gz
+
+
+
+3. Extract the tarball.
+
+	# tar xzf pnp4nagios-0.6.26.tar.gz
+
+
+
+4. Access the directory.
+
+	# cd pnp4nagios-0.6.26
+
+
+
+5. Compile and install
+
+	# ./configure
+	# make all
+	# make install-webconf
+	# make install-config
+	# make install-init
+	# make fullinstall
+
+
+
+6. Restart webserver.
+
+	# service httpd restart
+
+
+
+7. Check if installation is successful.
+
+	Go to http://localhost/pnp4nagios. If installation is successful, a webpage should be shown.
+
+
+
+8. Cleanup.
+
+	Remove or rename install.php. In this case, it was renamed:
+
+	# mv /usr/local/pnp4nagios/share/install.php /usr/local/pnp4nagios/share/install.php.sample
+
+
+
+
+******* INSTALLING USING BULK MODE *******
+
+
+
+1. Edit /usr/local/nagios/etc/nagios.cfg to enable “process_performance_data”. By default it’s 0.
+
+	# vim /usr/local/nagios/etc/nagios.cfg
+
+	  replace "0" to "1"	process_performance_data=1
+
+
+
+2. Add these lines at the bottom of the nagios.cfg file:
+
+	# vim /usr/local/nagios/etc/nagios.cfg
+	##########################
+	# service performance data
+	##########################
+	service_perfdata_file=/usr/local/pnp4nagios/var/service-perfdata
+	service_perfdata_file_template=DATATYPE::SERVICEPERFDATA\tTIMET::$TIMET$\tHOSTNAME::$HOSTNAME$\tSERVICEDESC::$SERVICEDESC$\tSERVICEPERFDATA::$SERVICEPERFDATA$\tSERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\tHOSTSTATE::$HOSTSTATE$\tHOSTSTATETYPE::$HOSTSTATETYPE$\tSERVICESTATE::$SERVICESTATE$\tSERVICESTATETYPE::$SERVICESTATETYPE$
+	service_perfdata_file_mode=a
+	service_perfdata_file_processing_interval=15
+	service_perfdata_file_processing_command=process-service-perfdata-file
+
+	################################################
+	# host performance data starting with Nagios 3.0
+	################################################
+	host_perfdata_file=/usr/local/pnp4nagios/var/host-perfdata
+	host_perfdata_file_template=DATATYPE::HOSTPERFDATA\tTIMET::$TIMET$\tHOSTNAME::$HOSTNAME$\tHOSTPERFDATA::$HOSTPERFDATA$\tHOSTCHECKCOMMAND::$HOSTCHECKCOMMAND$\tHOSTSTATE::$HOSTSTATE$\tHOSTSTATETYPE::$HOSTSTATETYPE$
+	host_perfdata_file_mode=a
+	host_perfdata_file_processing_interval=15
+	host_perfdata_file_processing_command=process-host-perfdata-file
+
+
+
+3. Add these lines at the bottom of the commands.cfg file:
+
+	# vim /usr/local/nagios/etc/objects/commands.cfg
+	define command{
+     	  command_name    process-service-perfdata-file
+	  command_line    /usr/local/pnp4nagios/libexec/process_perfdata.pl --bulk=/usr/local/pnp4nagios/var/service-perfdata
+		}
+
+	define command{
+	       command_name    process-host-perfdata-file
+	       command_line    /usr/local/pnp4nagios/libexec/process_perfdata.pl --bulk=/usr/local/pnp4nagios/var/host-perfdata
+		}
+
+
+
+4. Add these lines at the bottom of the templates.cfg file:
+
+	# vim /usr/local/nagios/etc/objects/templates.cfg
+	define host {
+	   name       host-pnp
+	   action_url /pnp4nagios/index.php/graph?host=$HOSTNAME$&srv=_HOST_
+	   register   0
+		}
+
+	define service {
+	   name       srv-pnp
+	   action_url /pnp4nagios/index.php/graph?host=$HOSTNAME$&srv=$SERVICEDESC$
+	   register   0
+		}
+
+	# To enable hosts and services
+
+	define host{
+	        use                     linux-server,host-pnp    ;add this for host
+        	alias                   localhost
+        	address                 127.0.0.1
+	        }
+
+	define service{
+        	use                     local-service,srv-pnp    ;add this for service
+        	host_name               localhost
+        	service_description     PING
+        	check_command           check_ping!100.0,20%!500.0,60%
+	        }
+
+
+
+5. Restart httpd and nagios. In bulk mode, you must wait for 30 minutes for the graphs to be generated.
+
+	# service nagios restart
+	# service httpd restart
+
+
+
+
+
+			#######################################################
+			#                                                     #
+			#           Installing Mk-Livestatus 1.2.4p5          #
+			#                                                     #
+			#######################################################
+
+
+
+Automatic Setup
+
+	The typical way to setup Livestatus is just to answer yes when asked by the Check_mk setup. Important is, that you have all tools installed that are needed for compiling C++ programs. Those are at least:
+
+	The GNU C++ compiler (Debian packages that as g++)
+	The utility make (packaged as make)
+	The development files for the libc (libc6-dev)
+	The development files for the C++ standard library (libstdc++6-dev)
+	The script setup.sh compiles a module called livestatus.o and copies it into /usr/lib/check_mk (if you didn’t change that path). It also adds two lines to your nagios.cfg, which are needed for loading the module. After that you just need to restart Nagios and a Unix socket with the name live should appear in the same directory as your Nagios command pipe.
+
+
+
+Manual Setup
+
+	There are several situation in which a manual setup is preferrable, for example:
+
+	If you do not want to use Check_MK, but just Livestatus
+	If the automatic setup does not work correctly (which is unlikely but not impossible).
+	If you want to make changes to the source code of Livestatus.
+	For manually setting up Livestatus, you can download the source code independently of Check_MK at the download page.
+
+
+
+1. Unpack the tarball at a conveniant place (egs. root) and change to the newly created directory.
+
+
+
+2. Install first the C compiler:
+
+	# yum install make gcc-c++ wget
+	# cd /usr/local/nagios
+	# wget http://mathias-kettner.de/download/mk-livestatus-1.2.4p5.tar.gz
+	# tar xzf mk-livestatus-1.2.4p5.tar.gz
+	# cd mk-livestatus-1.2.4p5
+
+
+
+3. Compile the module.
+
+	# ./configure --with-nagios4
+
+
+
+4. Do the installation.
+
+	# make install
+
+
+
+5. This action should created a single file named "livestatus.o" into /usr/local/lib/mk-livestatus and the small program "unixcat" into /usr/local/bin.
+
+
+
+6. Loading livestatus.o into Nagios.
+   Last task is to load "livestatus.o" into Nagios. Nagios is told to load that module and send all status updates event to the module by adding the following two lines to nagios.cfg (found at /usr/local/nagios/etc directory)
+
+	# vim /usr/local/nagios/etc/nagios.cfg
+ 
+	broker_module=/usr/local/lib/mk-livestatus/livestatus.o /usr/local/nagios/var/rw/live
+	event_broker_options=-1
+
+
+
+7. Restarting Nagios 
+	
+	# service nagios restart
+
+
+
+8. Checking
+
+	After setting up Livestatus and restarting Nagios, two things should happen:
+
+	1. The socket file is created. (Check by navigating to /usr/local/nagios/var/rw. The socket file "live" should have been created.)
+
+	2. The logfile of Nagios shows that the module has been loaded. (Check by navigating to /usr/local/nagios/var then check the nagios.log file. It should show a message from the event broker module that you have added a while ago in nagios.cfg:
+
+	[20120128 0644] livestatus: Version 1.1.12p6 initializing. Socket path: '/usr/local/nagios/var/rw/live'
+	[20120128 0644] livestatus: Created UNIX control socket at /usr/local/nagios/var/rw
+	[20120128 0644] livestatus: Opened UNIX socket /usr/local/nagios/var/rw/live
+	[20120128 0644] livestatus: successfully finished initialization
+	[20120128 0644] Event broker module '/usr/local/lib/mk-livestatus/livestatus.o' initialized successfully.
+
+
+
+
+
+		################################################
+		#                                              #
+		#           Installing Nagvis 1.9.3	       #
+		#                                              #
+		################################################
+
+
+
+Check if livestatus.so and nagios are running:
+
+	# find / -name livestatus.so
+	# service nagios status
+
+
+
+Nagvis Prerequisites:
+
+	# yum install php-gd php-mbstring php-pdo graphviz graphviz-graphs perl-GraphViz graphviz-doc rsync -y
+
+
+
+1. Download Nagvis.
+
+	The latest release can be found at http://www.nagvis.org/downloads.
+
+	# wget http://www.nagvis.org/share/nagvis-1.9.3.tar.gz
+
+
+
+2. Unpack Nagvis.
+
+	# tar xzf nagvis-1.9.3.tar.gz
+	# cd nagvis-1.9.3
+
+
+
+3. Run the installer.
+
+	# ./install.sh
+
+
+
+4. Copy the answer on the question:		
+
+	Do you want to proceed? [y]: y
+	Please enter the path to the nagios base directory [/usr/local/nagios]: /usr/local/nagios
+	Please enter the path to NagVis base [/usr/local/nagvis]: /usr/local/nagvis
+
+	Please enter the web path to NagVis [/nagvis]: /nagvis
+	Please enter the name of the web-server user [apache]: apache
+	Please enter the name of the web-server group [apache]: apache
+	create Apache config file [y]: y
+
+	Do you really want to continue? [y]: y
+
+
+
+5. Restart apache.
+
+	# service httpd restart
+
+
+
+2. Restart Nagios.
+
+	# service nagios restart
+
+
+
+
+
+Support:
+
+https://support.nagios.com/forum/index.php
+https://support.nagios.com/kb/article/nagios-core-how-to-monitor-a-router-switch.html
+
+
+Reference:
+
+http://www.putorius.net/2015/04/setting-time-and-date-in-red-hat-7.html
+http://sites.box293.com/nagios/guides/installing-nagios/4-1-x/centos-6-7
+https://assets.nagios.com/downloads/nagioscore/docs/Installing_Nagios_Core_From_Source.pdf
+http://www.elinuxbook.com/nagios-core-installation-on-centos/
+http://frederic-wou.net/nagios-server-4-4-1-installation-centos-7-2/
+https://nnfailagutan.wordpress.com/category/linux-installation/
+https://mathias-kettner.de/checkmk_livestatus.html
+http://www.aboutmonitoring.com/installing-nagios-core-4-pnp4nagios-check_mk-nagvis-centos-7-redhat-7/
+https://www.interserver.net/tips/kb/extract-tar-gz-files-using-linux-command-line/
+https://www.tecmint.com/install-cacti-network-monitoring-on-rhel-centos-6-3-5-8-and-fedora-17-12/
+http://www.serverlab.ca/tutorials/linux/administration-linux/configure-centos-6-network-settings/
+https://geekpeek.net/nagvis-install/
+http://blog.garciagea.com/?p=569
+http://tutoriaisgnulinux.com/2012/12/12/nagios-ndoutils-nagvis-no-centos-6/
+http://www.graphviz.org/Download_linux_rhel.php
+
+
+# cd /etc/httpd/conf.d
+
+# vim nagvis.conf
+
+
+
+# cd /usr/local/nagios
+	# wget http://204.178.9.49/pub/graphviz/development/redhat/el6/src/graphviz-2.41.20170921.2350-1.el6.src.rpm
+
+extract .rpm file
+
+	# graphviz-2.41.20170921.2350-1.el6.src.rpm | cpio -idmv
+
+extart .tar.gz
+
+	# tar xzf gunzip graphviz-2.41.20170921.2350.tar.gz
+	# cd graphviz-2.41.20170921.2350
+	# ./configure
+	# make install
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
