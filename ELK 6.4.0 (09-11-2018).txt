@@ -1,0 +1,472 @@
+
+
+
+Step 1: Perform a system update
+	Before installing any packages on the Ubuntu server instance, it is recommended to update the system. Log in using the sudo user and run the following commands to update the system.
+
+		#sudo apt update
+		#sudo apt -y upgrade
+
+	Once the system has finished upgrading, proceed to the next step.
+
+Step 2: Install Java
+	Elasticsearch requires Java 8 to work. It supports both Oracle Java and OpenJDK. 
+	This section of tutorial demonstrates installation of both Oracle Java and OpenJDK.
+
+	Make sure that you install any one of the following Java versions. Installation of Oracle Java is recommended for Elasticsearch. 
+	However, you may also choose to install OpenJDK according to your preference.
+
+	Installing Oracle Java
+	To install Oracle Java on your Ubuntu system, you will need to add the Oracle Java PPA by running:
+
+		#sudo add-apt-repository ppa:webupd8team/java
+
+	Now update the repository information by running:
+
+		#sudo apt update
+
+	Now you can easily install the latest stable version of Java 8 by running:
+
+		#sudo apt -y install oracle-java8-installer
+
+	Accept the licence agreement when prompted. Once the installation is finished, you can verify the Java version by running:
+
+		#java -version
+
+	You should see output similar to:
+
+		user@vultr:~$ java -version
+		java version "1.8.0_131"
+		Java(TM) SE Runtime Environment (build 1.8.0_131-b11)
+		Java HotSpot(TM) 64-Bit Server VM (build 25.131-b11, mixed mode)
+
+	You can also set the JAVA_HOME and other defaults by installing oracle-java8-set-default. Run:
+
+		#sudo apt -y install oracle-java8-set-default
+
+	You can now verify if the JAVA_HOME variable is set by running:
+
+		#echo "$JAVA_HOME"
+
+	The output should resemble:
+
+		user@vultr:~$ echo "$JAVA_HOME"
+		/usr/lib/jvm/java-8-oracle
+
+	If you do not get the output shown above, you may need to logout and login to the shell again. Oracle Java is now installed on 	your server. 
+	You can now proceed to the Step 3 of the tutorial skipping installation of OpenJDK.
+
+	Installing OpenJDK
+	Installation of OpenJDK is pretty straightforward. Simply run the following command to install OpenJDK.
+
+		#sudo apt -y install default-jdk
+
+	Once the installation is finished, you can verify the Java version by running:
+
+		#java -version
+
+	You should see output similar to:
+
+		user@vultr:~$ java -version
+		openjdk version "1.8.0_131"
+		OpenJDK Runtime Environment (build 1.8.0_131-8u131-b11-2ubuntu1.17.04.2-b11)
+		OpenJDK 64-Bit Server VM (build 25.131-b11, mixed mode)
+
+	To set the JAVA_HOME variable, run the following command:
+
+		#sudo echo "JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> /etc/environment
+
+	Reload the environment file by running:
+
+		#sudo source /etc/environment
+
+	You can now verify if the JAVA_HOME variable is set by running:
+
+		# echo "$JAVA_HOME"
+
+	The output should resemble:
+
+		user@vultr:~$ echo "$JAVA_HOME"
+		/usr/lib/jvm/java-8-openjdk-amd64/
+
+
+
+Elasticseach:
+
+	Download and install the Debian package manuallyedit
+	The Debian package for Elasticsearch v6.4.0 can be downloaded from the website and installed as follows:
+
+		# wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.deb
+		# wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.deb.sha512
+		# shasum -a 512 -c elasticsearch-6.4.0.deb.sha512 
+		# sudo dpkg -i elasticsearch-6.4.0.deb
+		# vi /etc/elasticsearch/elasticsearch.yml
+
+			cluster.name: mark-elasticsearch
+			node.name: mark-node
+			path.data: /var/lib/elasticsearch
+			path.logs: /var/log/elasticsearch
+			network.host: 192.168.203.172
+			http.port: 9200
+	Modules:
+		# cd /usr/share/elasticsearch
+		# sudo bin/elasticsearch-plugin install ingest-geoip
+		# sudo bin/elasticsearch-plugin install ingest-user-agent
+	
+		# systemctl start elasticsearch
+		# systemctl enable elasticsearch
+
+
+Kibana:
+
+	Download and install the Debian package manuallyedit
+	The Debian package for Kibana v6.4.0 can be downloaded from the website and installed as follows:
+
+		# wget https://artifacts.elastic.co/downloads/kibana/kibana-6.4.0-amd64.deb
+		# shasum -a 512 kibana-6.4.0-amd64.deb 
+		# sudo dpkg -i kibana-6.4.0-amd64.deb
+		# vi /etc/kibana/kibana.yml
+
+			server.port: 5601
+			server.host: "192.168.203.172"
+			server.name: "mark-kibana"
+			elasticsearch.url: "http://192.168.203.172:9200"
+			elasticsearch.username: "mark"
+			elasticsearch.password: "password"
+
+			elasticsearch.pingTimeout: 15000
+			elasticsearch.requestTimeout: 30000
+			elasticsearch.shardTimeout: 30000
+			elasticsearch.startupTimeout: 5000
+
+		# systemctl start kibana
+		# systemctl enable kibana
+
+	
+
+Logstash:
+
+	Download and install the Public Signing Key:
+
+		# wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+	You may need to install the apt-transport-https package on Debian before proceeding:
+
+		# sudo apt-get install apt-transport-https
+
+	Save the repository definition to /etc/apt/sources.list.d/elastic-6.x.list:
+
+		#echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list
+
+	Run sudo apt-get update and the repository is ready for use. You can install it with:
+
+		# sudo apt-get update && sudo apt-get install logstash
+
+		# vi /etc/logstash/conf.d/pipeline.conf
+
+		
+			input {
+  			  beats {
+    			    port => "5044"
+   			 }
+			}
+		 	filter {
+   				grok {
+        				match => { "message" => "%{COMBINEDAPACHELOG}"}
+    				}
+    				grok {
+   				match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
+    				}
+
+    				geoip {
+        				source => "clientip"
+    				}
+    				useragent {
+        				source => "agent"
+    				}
+			}
+			output {
+    				elasticsearch {
+        				hosts => [ "192.168.203.172:9200" ]
+        				manage_template => false
+        				index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+        				document_type => "%{[@metadata][type]}"
+   				 }
+			}
+
+		# systemctl start logstash
+		# systemctl enable logstash
+
+		# bin/logstash -f first-pipeline.conf --config.test_and_exit
+		# bin/logstash -f first-pipeline.conf --config.reload.automatic
+
+
+
+Filebeat:
+
+	# curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.4.0-amd64.deb
+	# sudo dpkg -i filebeat-6.4.0-amd64.deb
+	# vi /etc/filebeat/filebeat.yml
+
+		filebeat.inputs:
+
+
+		- type: log
+
+  		enabled: true
+  		paths:
+    		- /root/access.log
+		filebeat.config.modules:
+  		path: ${path.config}/modules.d/*.yml
+  		reload.enabled: false
+		setup.template.settings:
+  		index.number_of_shards: 3
+		setup.kibana:
+		output.logstash:
+		  hosts: ["192.168.203.172:5044"]
+
+	# systemctl start filebeat
+	# systemctl enable filebeat
+
+
+	# rm /var/lib/filebeat/registry
+	# cd /usr/bin
+	# sudo ./filebeat -e -c filebeat.yml -d "publish"
+
+
+
+Nginx:
+
+	Install Nginx by running:
+
+		# sudo apt -y install nginx
+		# vi /etc/nginx/site-available/kibana
+
+			server{
+        			listen 80;
+        			server_name kibana-mark.com;
+        			location / {
+
+        			proxy_pass "http://192.168.203.172:5601";
+
+        			}
+			}
+		
+		# ln -s /etc/nginx/site-availbale/kibana /etc/nginx/site-enable/kibana
+		# nginx -t
+
+	Start and enable Nginx to automatically start at boot time.
+
+		# sudo systemctl start nginx
+		# sudo systemctl enable nginx
+
+
+Nginx with SSL:
+
+
+	Install Nginx by running:
+
+		# sudo apt -y install nginx
+
+	Creating SSL Certificate:
+
+		# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+	
+			Output:
+
+				Country Name (2 letter code) [AU]:US
+				State or Province Name (full name) [Some-State]:New York
+				Locality Name (eg, city) []:New York City
+				Organization Name (eg, company) [Internet Widgits Pty Ltd]:Bouncy Castles, Inc.
+				Organizational Unit Name (eg, section) []:Ministry of Water Slides
+				Common Name (e.g. server FQDN or YOUR name) []:server_IP_address
+				Email Address []:kibana-mark.com
+
+		# sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+
+		# sudo vi /etc/nginx/snippets/self-signed.conf
+	
+			ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+			ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+	
+
+	From https://cipherli.st/
+	And https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
+
+
+		# sudo vi /etc/nginx/snippets/ssl-params.conf
+
+			ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+			ssl_prefer_server_ciphers on;
+			ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+			ssl_ecdh_curve secp384r1;
+			ssl_session_cache shared:SSL:10m;
+			ssl_session_tickets off;
+			ssl_stapling on;
+			ssl_stapling_verify on;
+			resolver 8.8.8.8 8.8.4.4 valid=300s;
+			resolver_timeout 5s;
+			# Disable preloading HSTS for now.  You can use the commented out header line that includes
+			# the "preload" directive if you understand the implications.
+			#add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+			add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
+			add_header X-Frame-Options DENY;
+			add_header X-Content-Type-Options nosniff;
+
+			ssl_dhparam /etc/ssl/certs/dhparam.pem;
+
+
+		# vi /etc/nginx/site-available/kibana
+
+			server {
+
+     			   	listen 80 default_server;
+      		 	 	listen [::]:80 default_server;
+      				server_name kibana-mark.com;
+				return 301 https://$server_name$request_uri;
+			}
+
+			server {
+
+    				# SSL configuration
+
+    				listen 443 ssl http2 default_server;
+    				listen [::]:443 ssl http2 default_server;
+    				include snippets/self-signed.conf;
+    				include snippets/ssl-params.conf;
+
+    				location / {
+
+        				proxy_pass "http://192.168.203.172:5601";
+
+        			}
+			}
+		
+
+		# ln -s /etc/nginx/site-availbale/kibana /etc/nginx/site-enable/kibana
+		# nginx -t
+
+	Start and enable Nginx to automatically start at boot time.
+
+		# sudo systemctl start nginx
+		# sudo systemctl enable nginx
+
+
+
+
+
+Reference:
+
+https://www.vultr.com/docs/how-to-install-and-configure-elastic-stack-elasticsearch-logstash-and-kibana-on-ubuntu-17-04
+https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04	
+
+
+
+Data Count:
+
+	*JSON Input*
+
+		{"min_doc_count":1000}
+
+
+Scripted Fields:
+
+	*geoip.region_iso_code*
+
+		if (doc['geoip.region_code'].value != null && doc['geoip.country_code2'].value != null) {
+ 			return  doc['geoip.country_code2'].value + '-' + doc['geoip.region_code'].value;
+		}
+		return "";
+
+
+	*china.provinces_name*
+
+		doc['geoip.region_name'].value == 'Guangxi' ? 'Guangxi Zhuang Autonomous Region' : doc['geoip.region_name'].value == 'Ningsia Hui Autonomous Region' ? 'Ningxia Hui Autonomous Region' : doc['geoip.region_name'].value == 'Inner Mongolia Autonomous Region' ? 'Inner Mongolia' : doc['geoip.region_name'].value
+
+
+	*country_name*
+
+		doc['geoip.country_name'].value == 'Republic of Korea' ? 'Korea, Republic of' : doc['geoip.country_name'].value
+
+
+	*os_version*
+	
+		if (doc['os'].value != null || doc['os_major'].value != null || doc['os_minor'].value != null) {
+  			return  doc['os'].value + ' ' + doc['os_major'].value + '.' + doc['os_minor'].value;
+		}
+		return "";
+
+
+	*browser_version*
+
+		if (doc['name'].value != null || doc['major'].value != null || doc['minor'].value != null) {
+  			return  doc['name'].value + ' ' + doc['major'].value + '.' + doc['minor'].value;
+		}
+		return "";
+
+
+
+NGINX Logstash Pipe:
+
+
+input {
+  beats {
+    port => 443
+    ssl => true
+    ssl_certificate => "/etc/logstash/logstash-forwarder.crt"
+    ssl_key => "/etc/logstash/logstash-forwarder.key"
+  }
+}
+ 
+
+
+filter {
+    if [type] == "nginx-access" {
+       grok {
+            match => { "message" => "%{IPORHOST:remote_addr} (?:%{USER:ident}|-) (?:%{USER:auth}|-) \[%{HTTPDATE:timestamp}\] \"%{WORD:method} %{URIPATHPARAM:request_path} HTTP/%{NUMBER:httpversion}\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) (?:\"(?:%{URI:referrer}|-)\"|%{QS:referrer}) %{QS:agent} \"(:|(?<x_forwarded_for>%{IP:xff_clientip}(, .*)?)|-)\" \<millis\=%{GREEDYDATA:request_duration}\>,\ \<host\=%{GREEDYDATA:domain}\>,\ \<gzipratio\=%{GREEDYDATA:gzip}\>" }
+            remove_field => ["message"]
+            }
+       }
+	
+	grok {
+    	match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
+    	}
+
+    geoip {
+       source => "remote_addr"
+       target => "geoip"
+       add_tag => ["nginx-geoip"]
+       add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
+       add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}"  ]
+    }
+    useragent {
+        source => "agent"
+    }
+    mutate {
+      add_field => { "geoip.location" => "%{geoip.latitude} %{geoip.longitude}" }
+    }
+}
+
+
+
+output {
+  elasticsearch {
+    hosts => ["172.31.8.50:9200"]
+    sniffing => true
+    user => elastic
+    password => RYytb36Cm4MWtEp
+    manage_template => false
+    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+    document_type => "%{[@metadata][type]}"
+  }
+}
+
+
+
+
+
+
+
+
+
+
