@@ -1,0 +1,120 @@
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.100 -c philweb2 | grep ifAlias
+
+IF-MIB::ifAlias.10103 = STRING: ETPI_10MB
+IF-MIB::ifAlias.10104 = STRING: ETPI_10MB
+IF-MIB::ifAlias.10107 = STRING: ETPI_10MB_NODE1
+IF-MIB::ifAlias.10109 = STRING: EMVI_10MB
+IF-MIB::ifAlias.10110 = STRING: EMVI_10MB
+IF-MIB::ifAlias.10111 = STRING: EMVI_10MB
+IF-MIB::ifAlias.10112 = STRING: EMVI_10MB
+IF-MIB::ifAlias.10114 = STRING: EMVI_VITRO
+IF-MIB::ifAlias.10119 = STRING: Radware 248 (G2)
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.101 -c Ph1lW3B | grep ifAlias
+
+IF-MIB::ifAlias.10101 = STRING: ETPI_10MB
+IF-MIB::ifAlias.10102 = STRING: SG-SW#1#sh vlan
+IF-MIB::ifAlias.10103 = STRING: ETPI_10MB
+IF-MIB::ifAlias.10104 = STRING: ETPI_10MB
+IF-MIB::ifAlias.10105 = STRING: ETPI_10MB_DLL
+IF-MIB::ifAlias.10106 = STRING: ETPI_10MB_NODE0
+IF-MIB::ifAlias.10107 = STRING: ETPI_10MB_NODE1
+IF-MIB::ifAlias.10108 = STRING: Globe_5MB
+IF-MIB::ifAlias.10111 = STRING: 192SW-Corporate_MGMT
+IF-MIB::ifAlias.10113 = STRING: EMVI_VITRO
+IF-MIB::ifAlias.10115 = STRING: EMVI_VITRO
+IF-MIB::ifAlias.10116 = STRING:
+IF-MIB::ifAlias.10120 = STRING: Magcor FW(S) PLDT 10MB Corp
+IF-MIB::ifAlias.10121 = STRING: Magcor FW(M) PLDT 10MB Corp
+
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.102 -c Ph1lW3b | grep ifAlias
+
+IF-MIB::ifAlias.10107 = STRING: ETPI_3MB Uplink
+IF-MIB::ifAlias.10108 = STRING: ETPI_3MB LB1
+IF-MIB::ifAlias.10109 = STRING: ETPI_3MB LB2
+IF-MIB::ifAlias.10110 = STRING: VPN75_Sigma-FW(m)
+IF-MIB::ifAlias.10113 = STRING: MAGCOR_MGMT_SW#2Wireless
+IF-MIB::ifAlias.10118 = STRING: MAGCOR_MGMT_SW#1Wired
+IF-MIB::ifAlias.10119 = STRING: Pacnet 2MB
+
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.103 -c Ph1lW3B | grep ifAlias
+
+IF-MIB::ifAlias.10107 = STRING: ETPI_3MB Uplink
+IF-MIB::ifAlias.10108 = STRING: ETPI_3MB LB1
+IF-MIB::ifAlias.10109 = STRING: ETPI_3MB LB2
+IF-MIB::ifAlias.10111 = STRING: VPN75_Sigma-FW(s)
+IF-MIB::ifAlias.10112 = STRING: VPN75_Corp-FW(s)
+
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.104 -c 1mP@kt0 | grep ifAlias
+
+IF-MIB::ifAlias.10102 = STRING: Corp FW_Master (P2)
+IF-MIB::ifAlias.10105 = STRING: 202_LAN_node0
+IF-MIB::ifAlias.10106 = STRING: Corp FW_Slave (P2)
+IF-MIB::ifAlias.10118 = STRING: PLDT_DSL
+
+
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 192.168.102.105 -c Ph1lW3B | grep ifAlias
+
+
+IF-MIB::ifAlias.10105 = STRING: 202_LAN_node1
+IF-MIB::ifAlias.10110 = STRING: Checkpoint POC
+IF-MIB::ifAlias.10119 = STRING: PLDT-DSL
+IF-MIB::ifAlias.10120 = STRING: PLDT-DSL
+IF-MIB::ifAlias.10121 = STRING: PLDT-DSL
+IF-MIB::ifAlias.10122 = STRING: PLDT-DSL
+
+
+
+
+
+[root@it-wordpress libexec]# snmpwalk -v 2c 172.16.102.100 -c Ph1lW3B | grep ifAlias
+
+IF-MIB::ifAlias.10122 = STRING: Alfresco_SVR
+IF-MIB::ifAlias.10144 = STRING: ETPI 2MB - API SG to VITRO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

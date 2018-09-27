@@ -1,0 +1,86 @@
+ 1008  service nagios stop          [SG and ETPI]
+ 1009  ps -ef | grep nagios
+ 1010  pkill -9 nagios
+ 1011  ps -ef | grep nagios
+ 1013  service nagios start
+
+
+CHECK AMAZON     /mnt/nagios/etc/objects
+
+
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg = for error checking
+/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg = reboot task
+
+If no errors restart or reload nagios
+
+service nagios reload
+or
+service nagios restart
+
+/usr/local/nagios/etc/objects/
+
+//Objects -- Create folder and file.cfg
+                *Add hostname in hostgroup.cfg
+//etc -- *Add the folder name in nagios.cfg
+
+
+==== CHECH NAGIOS LOGS ====
+
+tail -30 /usr/local/nagios/var/nagios.log
+
+tail -30 /var/log/messages
+
+
+****************** Installing PNP4Nagios on CentOS
+
+http://andrewpuschak.com/dokuwiki/doku.php?id=installing_pnp4nagios_on_centos
+
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | grep ifAlias ==== check online port
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | grep ifDescr ==== check on bandwidth
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | less ==== check details
+snmpwalk -v 2c 172.16.102.100 -c Ph1lW3B | grep ifOperStatus ==== check online port
+
+
+CHECK DISK available 
+
+./check_nt -H 172.16.104.8 -v USEDDISKSPACE -l Y -w 80% -c 90% -p 12489 -s ph1lw3b123
+
+
+CHECK NSCLIENT 
+
+./check_nt -H 172.16.104.8 -p 12489 -s ph1lw3b123 -vCLIENTVERSION
+telnet 172.16.104.8 12489
+
+
+****************** Installing Nagios
+
+http://sites.box293.com/nagios/guides/installing-nagios/4-1-x/centos-6-7
+
+
+****************** Installing PNP4Nagios
+
+https://nnfailagutan.wordpress.com/category/linux-installation/
+
+
+****************** Installing Nagvis
+
+http://blog.garciagea.com/?p=569
+
+service httpd restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

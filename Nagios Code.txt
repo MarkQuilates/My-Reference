@@ -1,0 +1,249 @@
+
+================================ CHECK PORT available LIBEXEC  =================================
+
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | grep ifAlias ==== check online port
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | grep ifDescr ==== check on bandwidth
+snmpwalk -v 2c 192.168.44.100 -c PWB-OSM1 | less ==== check details
+
+
+================================ CHECK DISK available LIBEXEC   =================================
+
+./check_nt -H 172.16.104.8 -v USEDDISKSPACE -l Y -w 80% -c 90% -p 12489 -s ph1lw3b123
+
+
+================================ CHECK NSCLIENT LIBEXEC   =================================
+
+./check_nt -H 172.16.104.8 -p 12489 -s ph1lw3b123 -vCLIENTVERSION
+telnet 172.16.104.8 12489
+
+
+================================ CHECK NRPELIBEXEC   =================================
+
+./check_nrpe --H 172.16.104.8 -p 12489 -s ph1lw3b123
+
+
+================================ NAGIOS COMMAND =================================
+
+=== Declare Directory and Config file in Nagios.cfg ===
+
+cfg_file=/usr/local/nagios/etc/objects/localhost.cfg
+cfg_dir=/usr/local/nagios/etc/objects/Firewall
+
+
+
+# CHECK MEM
+
+define command {
+        command_name    check_mem
+        command_line    $USER1$/check-cisco.pl -H $HOSTADDRESS$ -C $ARG1$ -t mem -w $ARG2$ -c $ARG3$
+        }
+
+
+# CHECK CPU
+
+define command {
+        command_name    check_cpu
+        command_line    $USER1$/check-cisco.pl -H $HOSTADDRESS$  -C $ARG1$ -t cpu -w $ARG2$ -c $ARG3$
+        }
+
+
+# CHECK TEMPERATURE
+
+define command {
+        command_name    check_temp
+        command_line    $USER1$/check-cisco.pl -H $HOSTADDRESS$  -C $ARG1$ -t temp -w $ARG2$ -c $ARG3$
+        }
+
+
+
+# CHECK UPTIME
+
+define command {
+
+        command_name check_uptime
+        command_line /usr/bin/perl $USER1$/check_uptime.pl -H $HOSTADDRESS$ -C $ARG1$ -w $ARG2$ -c $ARG3$
+
+}
+
+
+
+# PORT BANDWIDTH
+
+define command{
+        command_name    check_port_bandwidth
+        command_line    $USER1$/check_snmp_int.pl -H $HOSTADDRESS$ -C $ARG1$ -n $ARG2$ -f -k -w 0,0 -c 0,0 -Y -r
+}
+
+
+
+# CHECK NSClient
+
+define command{
+        command_name    check_nt_casino
+        command_line    $USER1$/check_nt -H $HOSTADDRESS$ -p 12489 -s $ARG1$ -v $ARG2$ $ARG3$ $ARG4$
+        }
+
+
+
+# Check Physical Memory
+
+define command{
+        command_name    check_snmp_memory_pm.sh
+        command_line    $USER1$/check_snmp_memory_pm.sh -H $HOSTADDRESS$ $ARG1$ $ARG2$
+}
+
+
+
+
+
+================================ NAGIOS SERVICES =================================
+
+
+*CHECK DISK with Warning 
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     Storage F:\ TempDB Data1
+        check_command           check_nt_casino!ph1lw3b12345!USEDDISKSPACE!-l F -w 80% -c 90%
+}
+
+
+*CHECK CPU with Warning
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     CPU Load
+        check_command           check_nt_casino!ph1lw3b12345!CPULOAD!-l 5,50,70
+}
+
+
+*CHECK MEM with Warning
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     Physical Memory
+        check_command           check_snmp_memory_pm.sh! -H 10.0.104.5 -C public -w 96 -c 98
+}
+
+
+*CHECK Uptime
+***************************************
+
+define service{
+        use                     generic-service
+        host_name               Switch1_(192.168.103.101)
+        service_description     Uptime
+        check_command           check_uptime!Ph1lw3bVITRO1! -u -w 3 -c 5
+}
+
+
+*CHECK Port
+***************************************
+
+define service{
+        use                     generic-service
+        host_name               Switch1_(192.168.103.101)
+        service_description     Port 01 Link Status
+        check_command           check_snmp!-C Ph1lw3bVITRO1 -o ifOperStatus.10101 -H 192.168.103.101 -r 1 -l PLDT_EMVI_10MB_LAN
+}
+
+
+*CHECK Bandwidth
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Switch1_(192.168.103.101)
+        service_description     Port 27 Bandwidth
+        check_command           check_port_bandwidth!Ph1lw3bVITRO1!GigabitEthernet0/27!
+}
+
+
+*CHECK PING
+***************************************
+
+define service{
+        use                     generic-service2
+        host_name               Costello_DB01
+        service_description     PING
+        check_command           check_ping!100.0,20%!500.0,60%
+}
+
+
+*CHECK NSClient
+***************************************
+
+define service{
+        use                     generic-service2
+        host_name               Costello_DB01
+        service_description     NSClient++ Version
+        check_command           check_nt_casino!ph1lw3b12345!CLIENTVERSION
+}
+
+
+*CHECK Port 80 - HTTP
+***************************************
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Costello_WEB
+        service_description     Port 80 - HTTP
+        check_command           check_tcp!80
+}
+
+
+*CHECK Port 443 - HTTPS
+***************************************
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Costello_WEB
+        service_description     Port 443 - HTTPS
+        check_command           check_tcp!443
+}
+
+
+*CHECK Port Link Status
+***************************************
+
+define service{
+        use                     generic-service
+        host_name               Switch1_192.168.44.100
+        service_description     Port 01 Link Status
+        check_command           check_snmp!-C PWB-OSM1 -o ifOperStatus.10101 -H 192.168.44.100 -r 1 -l Bayantel_6Mb_ISP_Link_Going_to_MODEM
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

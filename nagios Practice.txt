@@ -1,0 +1,203 @@
+Install VM workstation
+Install Centos liveCD 
+
+https://www.linode.com/docs/tools-reference/linux-users-and-groups
+
+http://www.tecmint.com/install-nagios-in-linux/
+
+https://wiki.centos.org/HowTos/Nagios#head-f342a1e6963018caa420d43e8d1b0bfcf640d223
+
+Use Terminal to do the ff.:
+1. make your user as root
+2. change hostname				
+- edit /etc/sysconfig/network
+  vi /etc/hosts
+3. show centos version release
+4. create a simple bash script that output your name when executed
+-it's up to you which directory it is located
+5. create nagios directory in /usr/local
+6. inside nagios directory put Test.txt
+7. edit Test.txt, put our latest nagios vitro costel-kronus alert result, then save
+8. show content of Test.txt Warnings only
+9. show content of Test.txt Critical only
+10. copy Critical in Test.txt file and put to Test2.txt without the use of manual copy paste 
+11. use terminal to shutdown the VM
+12. change ownership to your name and group to surname.
+
+
+ 
+egrep "support|help|windows" myfile.txt === (to search specific text paragraph)
+
+
+ll *mark === (to search file w/ the ff.)
+
+
+Stated here, the default commands for GNOME copy and paste are CTRL-SHIFT-C and CTRL-SHIFT-V.
+
+
+passwd Mark === (To create passwork on username)hostname
+
+
+useradd ===(To add username)
+
+
+{ #!/bin/bash
+
+
+echo "Hello World"
+chmod 700 mark
+./mark } === (To create executed text)
+
+-chmod 755 make read write files
+
+-cd /usr/local/nagios/etc/objects
+
+
+=== add user first*
+useradd mark
+chown mark test.txt ====(to change ownership)
+
+=== add group first*
+groupadd quilates
+chgrp quilates test.txt ===(to change group) 
+
+
+=== -sudo poweroff vm === (To logout to VM)
+
+
+cat /etc/centos-release ==== (to show version of os u are using) 
+
+
+
+*******************************************
+
+
+   NAGIOS*
+
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+service nagios stop
+
+ps -ef | grep nagios
+
+pkill -9 nagios
+
+service nagios start
+
+service nagios restart
+
+/usr/local/nagios/bin/nagios -d /usr/local/nagios/etc/nagios.cfg
+
+ps -ef | grep nagios
+
+
+
+**** TO CHECK COMMAND ON LIBEXEC****
+
+check_netscreen_mem
+
+./check_netscreen_mem -H
+
+ ./check_netscreen_mem -H 192.168.100.254 -C Monitoring
+
+***************************************
+
+define hostgroup{
+        hostgroup_name  Vitro_CSV_Servers
+        alias           CSV Servers
+        members         CSV_DB,CSV_WEB,
+}
+
+define host{
+        use                     linux-server
+        host_name               tester
+        alias                   202.44.103.115
+        address              202.44.103.115
+#     contact_groups          noc-ir
+        notification_interval        10
+        notifications_enabled        1
+        notification_period          24x7
+        notification_options         d,u,r
+        }
+
+define service{
+        use                     generic-service
+        host_name               tester
+        service_description     PING
+        check_command           check_ping!100.0,20%!500.0,60%
+#     contact_groups          noc-ir
+        notification_interval        10
+        notifications_enabled        1
+        notification_period          24x7
+        notification_options         w,c,r
+        }
+
+
+*CHECK DISK with Warning 
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     Storage F:\ TempDB Data1
+        check_command           check_nt_casino!ph1lw3b12345!USEDDISKSPACE!-l F -w 80% -c 90%
+}
+
+
+*CHECK CPU with Warning
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     CPU Load
+        check_command           check_nt_casino!ph1lw3b12345!CPULOAD!-l 5,50,70
+}
+
+
+*CHECK MEM with Warning
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Costello_DB01
+        service_description     Physical Memory
+        check_command           check_snmp_memory_pm.sh! -H 10.0.104.5 -C public -w 96 -c 98
+}
+
+
+*CHECK Uptime
+***************************************
+
+define service{
+        use                     generic-service
+        host_name               Switch1_(192.168.103.101)
+        service_description     Uptime
+        check_command           check_uptime!Ph1lw3bVITRO1! -u -w 3 -c 5
+}
+
+
+*CHECK Port
+***************************************
+
+define service{
+        use                     generic-service
+        host_name               Switch1_(192.168.103.101)
+        service_description     Port 01 Link Status
+        check_command           check_snmp!-C Ph1lw3bVITRO1 -o ifOperStatus.10101 -H 192.168.103.101 -r 1 -l PLDT_EMVI_10MB_LAN
+}
+
+
+*CHECK Bandwidth
+***************************************
+
+define service{
+        use                     generic-service,srv-pnp
+        host_name               Switch1_(192.168.103.101)
+        service_description     Port 27 Bandwidth
+        check_command           check_port_bandwidth!Ph1lw3bVITRO1!GigabitEthernet0/27!
+}
+
+
+
+

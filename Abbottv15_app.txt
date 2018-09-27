@@ -1,0 +1,190 @@
+define host{
+        use                     windows-server
+        host_name               Abbott_App_v15
+        alias                   abtappv15
+        address                 172.16.115.23
+        contact_groups          noc
+}
+
+
+define service{
+        use                     generic-service2
+        host_name               Abbott_App_v15
+        service_description     PING
+        check_command           check_ping!100.0,20%!500.0,60%
+}
+
+define service{
+        use                     generic-service2
+        host_name               Abbott_App_v15
+        service_description     NSClient++ Version
+        check_command           check_nt_abbott!CLIENTVERSION
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     CPU Load
+        check_command           check_nt_abbott!CPULOAD!-l 5,50,70
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Storage C:\ System
+        check_command           check_nt_abbott!USEDDISKSPACE!-l C -w 80% -c 90%
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Storage E:\ Backup
+        check_command           check_nt_abbott!USEDDISKSPACE!-l E -w 80% -c 90%
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Uptime
+        check_command           check_nt_abbott!UPTIME!days
+}
+
+# ABBOTT GAME PORTS
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2048 - Slots
+        check_command           check_tcp!2048
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2049 - Blackjack
+        check_command           check_tcp!2049
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2050 - Video Poker
+        check_command           check_tcp!2050
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2051 - Craps
+        check_command           check_tcp!2051
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2052 - Patch
+        check_command           check_tcp!2052
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2053 - Account
+        check_command           check_tcp!2053
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2054 - Baccarat
+        check_command           check_tcp!2054
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2055 - Caribbean Stud Poker
+        check_command           check_tcp!2055
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2056 - Roulette
+        check_command           check_tcp!2056
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2057 - Pai Gow Poker
+        check_command           check_tcp!2057
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Port 2058 - War
+        check_command           check_tcp!2058
+}
+
+
+define service{
+        use                     generic-service2,srv-pnp
+        host_name               Abbott_App_v15
+        service_description     Memory
+        check_command           check_nt_abbott!MEMUSE! -w 70% -c 80%
+}
+
+#define service{
+#        use                     generic-service,srv-pnp
+#        host_name               Abbott_App_v15
+#        service_description     Memory2
+#        check_command           check_nt_memory!MEMUSE!80!90!
+#}
+
+
+#define service{
+#        use                     generic-service,srv-pnp
+#        host_name               Abbott_App_v15
+#        service_description     D:\ DATA
+#        check_command           check_nt_abbott!USEDDISKSPACE! -l D -w 80% -c 90%
+
+
+#SNMP MEMORY
+
+#define service{
+#        use                     generic-service,srv-pnp
+#        host_name               Abbott_App_v15
+#        service_description     Memory - Physical
+#        check_command           check_snmp_memory_pm.sh! -H 172.16.115.23 -C ph1lw3b123 -w 96 -c 98
+#}
+
+#define service{
+#        use                     generic-service,srv-pnp
+#        host_name               Abbott_App_v15
+#        service_description     Memory - Swap
+#        check_command           check_snmp_memory_swap.sh! -H 172.16.115.23 -C ph1lw3b123 -w 80 -c 90
+#}
+
+
+
+define service{
+        use                             generic-service2,srv-pnp
+        host_name                       Abbott_App_v15
+        service_description             NTP
+        check_command                   check_nrpe!check_ntp
+}
