@@ -1,0 +1,148 @@
+LINUX BOOTCAMP TRAINING DAY 4
+
+
+
+CREATE another VM
+	2HD - 10GB each
+	2GB
+	1CPU
+	NETWORK - Custom - vmnet0
+	cd - CentOS7
+
+
+
+LAB14: LINUX BOOTLOADER - grub & grub2 - Root Password Recovery
+	
+	** grub - RH6 **
+
+		STEP1: PRAY - reboot the system and Interrupt the boot seq
+		USE - arrows keys
+
+		Step#2:Grub menu
+			
+			press  e	"edit"
+			highlight the kernel section
+			press e	"to edit"
+			at the end of that line=	   1
+			press enter
+			press b
+
+
+		Step#3:Single usermode
+
+			# passwd root
+				"Change your password"	
+				"Change your password"
+			# reboot
+	
+
+
+	** grub2 - RH7 **
+
+		Step1: reboot - Interrupt the boot seq by using ARROWS Keys
+	
+		Step2: GRUB MENU
+
+			press "e" to edit
+			find "ro rhgb quiet"
+			change it to "rw  init=/bin/bash"
+			press "ctrl+x" to boot
+
+		Step3:Single user mode
+
+			# passwd root
+				"Change your password"	
+				"Change your password"
+
+		Step4:IF SElinux is enabled/enforing.
+
+			# touch  /.autorelabel
+
+		Step5:Reboot
+
+			# exec  /sbin/init
+
+
+
+LAB15: UPDATE THE LINUX SYSTEM
+	
+	#yum update
+
+
+
+LAB16: FSTAB - permanent mount
+
+
+
+	# vi /etc/fstab
+
+		/dev/vglab16/lvlab16    /mnt/lab16	ext4	defaults	0 0
+
+		:wq!
+
+	# reboot
+	# df -h
+
+
+	** EXTEND LVM SIZE **
+
+
+	# umount  /mnt/lab16
+
+	# lvextend  -L  +2G  /dev/vglab16/lvlab16
+	# lvdisplay 
+	# e2fsck -f /dev/vglab16/lvlab16
+	# resize2fs  /dev/vglab16/lvlab16
+	# mount -t ext4   /dev/vglab16/lvlab16   /mnt/lab16
+
+
+
+LAB17:Symbolic Links
+
+	** Softlink - Windows Shortcut
+
+		# cd /
+		# touch  origsoft
+
+		# echo lab17  >>  /origsoft
+		# cat /origsoft
+		# cd /home
+
+		# ln -s /origsoft   /home/copysoft
+
+		# ls -i  /origsoft	--> CHECK
+		# ls -i  /home/copysoft
+
+		# rm  -f  /origsoft
+		# ls -l
+		# cat copysoft
+
+
+	** Hardlink
+
+		# touch orighard
+		# echo lab17  >>  /orighard
+
+		# cat /orighard
+		# cd /home
+
+		# ln  /orighard   /home/copyhard
+
+		# ls -i  /orighard	--> CHECK
+		# ls -i /home/copyhard
+
+
+
+LAB18:LDAP
+
+
+
+
+
+
+
+
+
+
+
+

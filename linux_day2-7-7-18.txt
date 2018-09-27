@@ -1,0 +1,202 @@
+LINUX BOOTCAMP TRAINING DAY 2
+
+
+
+TASK0: Create a New VM w/ the ff. settings
+	2HD w/ 10GB each
+	1cpu
+	2GB of RAM
+	Network: Custom - VMNET0
+	CD: CentOS6
+
+TASK1: Install CentOS6 Minimal w/ ff. Partitions on SDA
+	sda
+		/boot	ext4	512MB
+		-------	swap	1024MB
+		/	ext4	MAX
+	sdb
+		FREE
+
+TASK2: Make a Static IP. 192.168.X.1 / 255.255.255.0 / 192.168.X.1
+TASK3: Create a DHCP Server w/ range of 192.168.X.10 - 192.168.X.254
+
+	vi dhcpd.conf
+
+		host boss {
+			hardware ethernet XX:XX:XX:XX:XX;
+			fixed-address 192.168.X.88;
+		}	
+		:wq!
+
+	service dhcpd restart
+
+************************************************************************
+
+
+
+LAB6: SAN (Storage Area Network) SERVER
+
+	# yum install scsi-target-utils
+
+		sda - OS
+		sdb - free
+
+	#fdisk  -l
+	#fdisk  /dev/sdb
+		m
+		n
+		p
+		1
+		1
+		1305
+		p
+		w
+
+	#fdisk -l
+
+	# cd  /etc/tgt
+	# vi targets.conf
+
+		<target iqn.dbserver>
+			initiator-address 192.168.X.88
+			backing-store /dev/sdb1
+		</target>
+
+		:wq!
+
+	# service tgtd start
+
+	** port of scsi is 3260
+
+	# service iptables stop
+
+
+
+************************************************************************
+
+TASK0: Create a New VM w/ the ff. settings
+	3HD w/ 10GB each
+	1cpu
+	2GB of RAM
+	Network: Custom - VMNET0
+	CD: OPENFILER
+
+	sda
+		/boot	ext3	512MB
+		-------	swap	1024MB
+		/	ext3	MAX
+	sdb & sdc
+		FREE
+
+	192.168.X.5
+	255.255.255.0
+	192.168.X.1
+
+************************************************************************
+
+
+
+LAB7:RUNLEVEL & CHKCONFIG
+
+	# cat  /etc/inittab
+		0 - halt / shutdown
+		1 - Single User mode / root password recovery
+		2 - No GUI and no Networking
+		3 - NO GUI but w/ networking
+		4 - UNUSED
+		5 - w/ GUI(X11) and networking
+		6 - reboot
+
+	# chkconfig
+
+	# chkconfig dhcpd on
+	# chkconfig iptables  --level 3 off
+
+
+
+LAB#8: LVM - Logical Volume Management
+
+	# fdisk -l
+	# fdisk  /dev/sdc
+		n
+		p
+		1
+		1
+		1305
+		p
+		t
+		L
+		8e
+		p
+		w
+
+	** INSTALL LVM PACKAGE
+
+		# yum install lvm2
+
+
+	** CREATE A PHYSICAL VOLUME
+
+		# pvcreate  /dev/sdc1
+		# pvdisplay
+
+	** CREATE VOLUME GROUP
+
+		# vgcreate  lab8  /dev/sdc1
+		# vgdisplay
+
+	** CREATE a LOGICAL VOLUME
+
+		# lvcreate  -L  2G  -n  lvlab8   lab8
+		# lvdisplay
+
+		# mke2fs  -t  ext4  /dev/lab8/lvlab8	--> FORMAT	
+
+		# cd  /mnt
+		# mkdir  lvm
+		# mount  -t  ext4  /dev/lab8/lvlab8  /mnt/lvm	--> MOUNT
+		# df  -h
+
+
+
+LAB9: RAID ( Redundant Array Independent/Inexpensive Disk)
+
+	HARDWARE RAID - BIOS/RAID CONTROLLER
+	SOFTWARE RAID - OS
+
+	2HD w/ 10GB each
+	1cpu
+	2GB of RAM
+	Network: Custom - VMNET0
+	CD: CentOS6
+
+
+	RAID 0
+		- FASTEST RAID
+		- NO BACKUP
+		- MINIMUM - 2HD
+	RAID 1
+		- MIRROR RAID (GOOD FOR BACKUP)
+		- LESS USER SPACE
+		- MINIMUM - 2HD
+	RAID 5
+		- GOOD IN BACKUP and PERFORMANCE
+		- POSSIBLE DOWNTIME
+		- MINIMUM - 3HD
+	RAID10
+		- BEST RAID
+		- EXPENSIVE
+		- MINIMUM - 4HD
+
+	** CHECK HDD STAT
+
+	# cat  /proc/mdstat
+
+
+
+Support Email:
+
+romel@rivanit.com
+romel@cyberseccorps.com
+
+

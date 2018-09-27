@@ -1,0 +1,264 @@
+LINUX BOOTCAMP TRAINING DAY 3
+
+
+
+CREATE A NEW VM:
+	4 HD = 5gb each
+	ram = 2gb
+	cd: centos6.5
+	network: Custom(VMNet0)
+
+	IPADDR=200.0.0.X
+	NETMASK=255.255.255.0
+	GATEWAY=200.0.0.1
+	DNS1=200.0.0.X
+
+
+
+LAB10: EMAIL Server
+
+
+
+	#SEND - postfix
+
+		rpm -qa postfix
+		cd /etc/postfix
+		ls
+		vi main.cf
+
+			:set number
+			comment
+				:164 #
+				:116 #
+
+			** Add these line to bottom:
+
+				myhostname = mail.jun.com
+				mydomain = jun.com
+				myorigin = $mydomain
+				mynetworks = 127.0.0.0/8, 200.0.0.0/24 --> Network range
+				home_mailbox = mail/
+				inet_interfaces = all
+				mydestination = $myhostname,localhost,$mydomain
+			:wq
+
+		# service iptables stop
+		# service postfix restart
+
+
+
+	#CREATE SSL
+
+		# cd /etc/postfix
+		# mkdir ssl
+		# cd ssl
+
+		# openssl genrsa -des3 -rand /etc/hosts  -out smtpd.key  1024
+	
+		# openssl req -new -key smtpd.key  -out smtpd.crt
+	
+			# openssl x509 -req -days 365 -in smtpd.crt -signkey smtpd.key -out smtpd.crt
+
+
+
+	#CREATE PEM - Privacy Enhanced Mail
+	
+		# openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 365
+	
+		# cd ..
+		# vi main.cf
+	
+			** Add these lines below:
+
+				smtpd_sasl_authentication_enable = yes
+				smtpd_sasl_type = cyrus
+				smptd_sasl_security_options = noanonymous
+				smtpd_sasl_authenticated_header = yes
+				smtpd_sasl_authenticated_clients = yes
+				smtpd_recipient_restrictions = permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination
+				smtpd_use_tls = yes				-->> TLS - TRANSPORT LAYER SECURITY
+				smtpd_tls_authentication_only = no
+				smtpd_tls_note_starttls_offer = yes
+				smtpd_tls_key_file = /etc/postfix/ssl/smtpd.key
+				smtpd_tls_cert_file = /etc/postfix/ssl/smtpd.crt
+				smtpd_tls_CAfile = /etc/postfix/ssl/cacert.pem
+				smtpd_tls_received_header = yes
+				smtpd_tls_session_cache_timeout = 3600s
+				tls_random_source = dev:/dev/urandom
+		
+			:wq
+
+
+		# service postfix restart
+
+		#cd /etc/postfix
+		#vi master.cf
+		
+			:set number
+	
+			** Add these line
+
+				20   -o  smtpd_recipient***************
+				21   -o  smtpd_reject_unlisted_sender=yes
+				22   -o  smtpd_sasl_authenticated_clients=yes
+			:wq
+
+
+		# service postfix restart
+		# yum install telnet
+		# telnet 192.168.203.160 25
+	 	# ehlo 192.168.203.160
+	
+		***See series of 250's
+	
+		ctrl ]
+		quit
+
+		#cat /var/log/maillog  --> Check mail logs
+
+
+
+	#RECEIVE - dovecot
+
+		# yum install dovecot
+		# cd /etc/dovecot
+		# vi dovecot.conf
+	
+			:set number		
+			uncomment:
+
+				20 protocols = imap pop3
+		
+			** Add these line:
+		
+				21 pop3_uidl_format = %08Xu%08Xu
+				22 mail_location = maildir:~/mail
+			:wq!
+
+		# service dovecot start
+		# telnet  200.0.0.X 143
+
+
+
+	#EMAILWEB - Squirrel
+
+		# rpm -Uvh http://ftp.jaist.ac.jp/pub/Linux/Fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+		# yum install squirrelmail -y
+
+		# perl  /usr/share/squirrelmail/config/conf.pl
+
+			Press:
+
+				2
+				quilates.com --> domain name
+				3
+				2 --> SMTP
+				A --> Update IMAP Setting
+				8
+				other
+				9
+				detect
+				B --> Update SMTP Setting
+				S --> Save data
+				Q --> exit
+
+
+		# cd /etc/httpd/conf.d
+		# vi squirrelmail.conf
+	
+			comment:
+				#RewriteCond
+				#RewriteRule
+			:wq!
+
+		# service httpd start
+
+		# yum install cyrus-sasl-plain
+		# yum install cyrus-sasl-md5
+		# rpm -qa | grep cyrus-sasl*
+	
+
+		Goto Windows http://200.0.0.X/webmail
+
+
+	#CREATE USER FOR EMAIL
+
+		# useradd  jun  -m  -s  /sbin/nologin
+		# passwd jun
+
+		# useradd shota  -m  -s  /sbin/nologin
+		# passwd shota
+
+
+		#yum install bind -y
+		# cd /var/named
+		# ls
+		# vi jun.zone
+
+			mail	A	200.0.0.X
+			jun.com.	MX	0	mail.jun.com.
+
+			:wq!
+
+		# vi /etc/named.conf
+			:set number
+
+				20 dnssec-enable no;
+				21 dnssec-validation no;             
+				22 forwarders { 200.0.0.X;200.0.0.K;200.0.0.K2;200.0.0.K;};
+				23 forward only;
+			:wq!
+
+		# service named restart
+
+
+
+LAB11:SELINUX
+
+	# cd /etc/selinux
+	# vi config
+
+		SELINUX=enforcing
+		#CHANGE IT TO disabled
+		SELINUX=disabled
+
+		sestatus
+		chkconfig dovecot on
+		chkconfig postfix on
+		chkconfig iptables off
+	:wq	
+
+	# reboot
+	# sestatus	--> Check Status
+
+
+
+LAB12: rsync
+
+	# yum install rsync -y
+	# yum install openssh-clients
+	# cd /home
+	# mkdir schooljun
+	# cd schooljun
+		touch student1
+		touch student2
+		touch student3
+		touch student4
+		touch student5
+		touch student6
+		touch student7
+
+	rsync  -avz  /home/schooljun   200.0.0.K:/home
+
+
+
+LAB13:CRON - SCHEDULER
+
+	# vi /etc/crontab
+
+		*/1  *  *  *  *  root  uptime  >>  /lab13
+		:wq!
+	
+	# service crond restart
+
+

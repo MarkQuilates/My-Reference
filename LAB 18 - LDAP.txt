@@ -1,0 +1,223 @@
+
+
+STEP1: for centos7 and 6
+
+	# vi /etc/hosts
+
+	# 172.M.0.1 server.rivan.local server
+	# 172.M.0._ client.rivan.local client
+
+
+STEP2: for centos 7 only
+
+	# yum -y install openldap* compat-openldap
+
+	** Check the ff in installed
+
+		openldap 
+		compat-openldap 
+		openldap-clients 
+		openldap-servers
+		openldap-devel
+
+
+STEP3: do this on centos 7
+
+	# systemctl start slapd.service
+	# systemctl enable slapd.service
+
+
+STEP4: centos 7
+
+	slappasswd
+	New password: 
+	Re-enter new password: 
+	{SSHA}+HV042sKLMJMSxVo9HUt5DmSE6vq2aQT
+
+
+STEP5: centos 7 
+
+	#cd /etc/openldap/slapd.d/
+
+	#vi db.ldif
+
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+		replace: olcSuffix
+		olcSuffix: dc=rivan,dc=local
+
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+
+		replace: olcRootDN
+		olcRootDN: cn=rootadmin,dc=rivan,dc=local
+	
+		dn: olcDatabase={2}hdb,cn=config
+		changetype: modify
+
+		replace: olcRootPW
+		olcRootPW: {SSHA}+HV042sKLMJMSxVo9HUt5DmSE6vq2aQT
+
+		olcSuffix –  DOMAIN
+
+		olcRootDN - user who has the unrestricted access
+	
+		olcRootPW – Password for the above RootDN
+	
+
+	# ldapmodify -Y EXTERNAL  -H ldapi:/// -f db.ldif
+
+
+STEP6: centos 7
+
+	# vi monitor.ldif
+
+		dn: olcDatabase={1}monitor,cn=config
+		changetype: modify
+		replace: olcAccess
+		olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external, cn=auth" read by dn.base="cn=rootadmin,dc=rivan,dc=local" read by * none
+
+	# ldapmodify -Y EXTERNAL  -H ldapi:/// -f monitor.ldif
+
+
+STEP7:SSL
+
+	# openssl req -new -x509 -nodes -out /etc/openldap/certs/rivancert.pem -keyout /etc/openldap/certs/rivankey.pem -days 365
+
+	# chown -R ldap:ldap /etc/openldap/certs/*.pem
+
+
+	** USE THE CERTS
+
+	# vi certs.ldif
+
+		dn: cn=config
+		changetype: modify
+		replace: olcTLSCertificateFile
+		olcTLSCertificateFile: /etc/openldap/certs/rivancert.pem
+
+		dn: cn=config
+		changetype: modify
+		replace: olcTLSCertificateKeyFile
+		olcTLSCertificateKeyFile: /etc/openldap/certs/rivankey.pem
+
+	# ldapmodify -Y EXTERNAL  -H ldapi:/// -f certs.ldif
+
+	**TESTING
+
+	# slaptest -u
+
+
+STEP8:LDAP DATABASE
+
+	# cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+
+	# chown ldap:ldap /var/lib/ldap/*
+
+	# ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
+	# ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif 
+	# ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
+
+
+	** GENERATE base.ldif for your domain
+
+	# vi base.ldif
+
+		dn: dc=rivan,dc=local
+		dc: rivan
+		objectClass: top
+		objectClass: domain
+
+		dn: cn=rootadmin ,dc=rivan,dc=local
+		objectClass: organizationalRole
+		cn: rootadmin
+		description: LDAP Manager
+
+		dn: ou=People,dc=rivan,dc=local
+		objectClass: organizationalUnit
+		ou: People
+
+		dn: ou=Group,dc=rivan,dc=local
+		objectClass: organizationalUnit
+		ou: Group
+
+	# ldapadd -x -W -D "cn=rootadmin,dc=rivan,dc=local" -f base.ldif
+
+
+	OUTPUT:
+
+		Enter LDAP Password: 
+		adding new entry "dc=rivan,dc=local"
+
+		adding new entry "cn=rootadmin ,dc=rivan,dc=local"
+
+		adding new entry "ou=People,dc=rivan,dc=local"
+
+		adding new entry "ou=Group,dc=rivan,dc=local"
+
+
+STEP9: LDAP User
+
+	# vi jun.ldif
+
+		dn: uid=jun,ou=People,dc=rivan,dc=local
+		objectClass: top
+		objectClass: account
+		objectClass: posixAccount
+		objectClass: shadowAccount
+		cn: jun
+		uid: jun
+		uidNumber: 9999
+		gidNumber: 100
+		homeDirectory: /home/jun
+		loginShell: /bin/bash
+		gecos: jun [Admin (at) rivan]
+		userPassword: {crypt}x
+		shadowLastChange: 17058
+		shadowMin: 0
+		shadowMax: 99999
+		shadowWarning: 7
+
+
+	** Use the ldapadd command with the above file to create a new user
+
+
+	# ldapadd -x -W -D "cn=ldapadm,dc=rivan,dc=local" -f jun.ldif
+
+	# ldappasswd -s password123 -W -D "cn=rootadmin,dc=rivan,dc=local" -x "uid=jun,ou=People,dc=rivan,dc=local"
+
+
+		-s specify the password for the username
+	
+		-x username for which the password is changed
+
+		-D Distinguished name to authenticate to the LDAP server.
+
+
+	** Verify LDAP entries.
+
+	# ldapsearch -x cn=jun -b dc=rivan,dc=local
+
+
+	** FIREWALL
+
+	# firewall-cmd --permanent --add-service=ldap
+	# firewall-cmd --reload
+
+
+	** CLIENT: centos 6
+
+	# yum install -y openldap-clients nss-pam-ldapd
+
+	# authconfig --enableldap --enableldapauth --ldapserver=192.168.X.200 --ldapbasedn="dc=rivan,dc=local" --enablemkhomedir --update
+
+	# systemctl restart  nslcd
+
+
+	** Use getent command to get the LDAP entries from the LDAP server.
+
+	# getent passwd jun
+
+	#jun:x:9999:100:jun [Admin (at) rivan]:/home/jun:/bin/bash
+
+
