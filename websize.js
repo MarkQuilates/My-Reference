@@ -476,3 +476,6 @@ var confess = {
 }
 
 confess.run();
+
+
+// By: Mr Q.
