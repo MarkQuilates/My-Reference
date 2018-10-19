@@ -194,6 +194,32 @@ Logstash:
    				 }
 			}
 
+
+
+		#IF WANT DIFFERENT NAME IN INDEX JUST IN FILEBEAT USE BELOW OUTPUT:
+
+			output {
+				if [type] == "webpage" {
+					elasticsearch {
+						hosts => ["192.168.213.128:9200"]
+						sniffing => true
+						manage_template => false
+						index => "webpage-%{+YYYY.MM.dd}"
+						document_type => "%{[@metadata][type]}"
+						}
+				}
+				else {
+					elasticsearch {
+					hosts => ["192.168.213.128:9200"]
+					sniffing => true
+					manage_template => false
+					index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+					document_type => "%{[@metadata][type]}"
+				}
+			}
+
+
+
 		# systemctl start logstash
 		# systemctl enable logstash
 
@@ -216,12 +242,21 @@ Filebeat:
   		enabled: true
   		paths:
     		- /root/access.log
+
+		# ADD THESE IF WHAT CUSTOM INDEX NAME:
+
+		fields_under_root: true
+		fields:
+			type: webpage --> name of custom index	
+		#
+
 		filebeat.config.modules:
   		path: ${path.config}/modules.d/*.yml
   		reload.enabled: false
 		setup.template.settings:
   		index.number_of_shards: 3
 		setup.kibana:
+
 		output.logstash:
 		  hosts: ["192.168.203.172:5044"]
 
