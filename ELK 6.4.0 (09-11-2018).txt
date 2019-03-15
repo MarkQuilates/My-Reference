@@ -397,8 +397,7 @@ Nginx with SSL:
 
 
 
-
-SSL Configuration Filebeat to Logstash
+SSL Configuration Filebeat to Logstash:
 
 
 
