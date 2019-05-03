@@ -1,0 +1,495 @@
+#!/bin/bash
+
+
+
+while sleep 5m
+
+do
+
+./check_web.sh
+./check_size.sh
+
+done
+
+
+exec &>> web_size.log
+
+curl -Is https://www.newbet8888.com | head -n 1
+
+$ for I in $(cat CMS\ Domains\ %2F\ Infra\ -\ BR88.tsv | grep -iv incapsula|  cut -d$'\t' -f1 | grep -v Domain)
+> do
+> curl -I $I
+> done
+
+
+
+remove last variable
+
+| sed 's/%//'
+| sed 's/ok//g'
+
+
+
+**** email
+	
+	#sudo apt-get install mailutils
+	#sudo apt-get install postfix
+
+dig 10bo88888.com +nocomments +noquestion +noauthority +noadditional +nostats 
+
+ip=$(dig $domain | grep -E '\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4}\b' | awk '{print $5}' | tail -1)
+
+
+
+domain=$(curl -Is https://www.newbet8888.com | head -n 1)
+
+echo " www.newbet8888.com STATUS: $domain"
+
+
+sed 's/ \+/,/g' web.txt > roland.csv
+
+removing comma = cat 2.txt | sed 's/,//g'
+
+
+
+Check Script
+
+	#set -x
+	#set -e
+
+
+#Slack:monitoring
+
+https://hooks.slack.com/services/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
+
+
+
+# POISONED
+
+m.nb88123.com 		199.59.149.244	twttr.com	BAD
+
+by77o.com BAD
+
+
+
+#no file
+
+br88
+alpha88
+
+https://www.alpha88asia.com/uploaded/alpha88/0b1844af24f73f80162fde864653df7480d638512c55b70d80134724238e82e2.png
+
+ebfbf344e42b5e7af98cadc12d321aa5  0b1844af24f73f80162fde864653df7480d638512c55b70d80134724238e82e2.png
+
+
+https://www.br88ap.com/uploaded/br88/09cb91e661751cc7e7e5f6d9c55448468800f244275c58c1eb77525ee4bbd364.png
+
+ff4d8586e859d334ddb501097528104f  09cb91e661751cc7e7e5f6d9c55448468800f244275c58c1eb77525ee4bbd364.png
+
+
+
+
+md5
+
+c1f931f63b9b4635a03d0cab3bb0a215  10bet88888.com.png
+
+794e684022bc0f6c38d5edd0d1cc2b39  99uu68.com.png
+
+d41d8cd98f00b204e9800998ecf8427e  alpha88.com.png
+
+
+# IP subnet
+grepcidr
+
+
+
+
+
+git config --global credential.helper wincred
+
+
+
+***** GIT and Github *****
+
+
+# Identity
+
+	#git config --global user.email mark.quilates@yahoo.com.ph
+	#git config --global user.name markquilates
+
+
+# New Repo
+
+	#git remote add origin https://github.com/cubeton/mynewrepository.git --> new repo created
+	#git push -u origin master --> upload updated repo to master branch
+
+# Cloned Repo
+
+	#git clone "URL" --> get repo from github to local machine
+	#git push -u origin master --> upload updated repo to master branch
+	#git push -u origin newbranch --> upload updated repo to new branch
+
+# save
+	
+	#git add "file"		#git add -A --> Bulk Adding files
+
+# take effect changes
+
+	#git commit "file"	#git commit -a -m "Bulk commit" --> commiting bulk files
+
+# check status
+
+	#git status
+
+# remote fork
+
+	#git remote -v
+
+# upload to github
+
+	#git push origin master
+
+# check log
+	
+	#git log
+
+# new branch
+
+	#git checkout -b newbranch
+
+# move to other branch
+
+	# git checkout branchname
+
+# Check current branch
+
+	# git branch
+
+# local merge branch to master : currently on the master branch
+
+	#git merge branch-one
+
+
+# update local repo
+
+	# git pull origin master
+
+# Rebasing (lineal merging)
+
+	#git rebase otherbranch --> currently on the master branch to update and copy all files from other branch (vice versa)
+
+# revert from previous commit
+
+	#check log --> find the previous commit then get the 8 digits of hexadecimal staring from the left
+	#git checkout 12345678 file.name --> put 8 digits hexa hen filename
+
+# Shortcut of adding, not inutting filename
+
+	# git add .
+	
+
+
+
+
+***** Gmail Security Enable *****
+
+https://myaccount.google.com/lesssecureapps?pli=1
+
+
+
+***** Format DISK *****
+
+Check HDD Stat:
+
+	# df -h
+
+Check HDD drive:
+
+	#lsblk
+
+Reformat HDD:
+
+	#shred --verbose /dev/sda5
+
+
+
+***** Hacking user password (win10) *****
+
+	*Insert win installer
+	*Go to CMD
+		#c:
+		#cd /Windows/System32
+		#rename osk.exe osk.exe.old
+		#rename cmd.exe osk.exe
+		#exit
+
+	Restart PC
+	Open OSK	
+		#net user
+		#net user mark *
+		Enter new password
+
+
+
+***** Google Chrome (Ubuntu Terminal) *****
+
+
+	#xinit &
+	#metacity &
+
+	#wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	#sudo dpkg -i google-chrome*.deb
+	#sudo apt-get install -f	
+
+
+
+
+*****PROXY TUNNEL*****
+
+	CHENGDU -
+	# ssh -t -L 192.168.142.135:9051:localhost:1234 mark@103.113.157.195 ssh -D 1234 mark@132.232.139.30
+
+	HK - 
+	# ssh -D 192.168.142.135:9050 mark@103.113.157.195	
+
+
+
+***** GnuPG *****
+
+	https://help.github.com/articles/generating-a-new-gpg-key/
+	
+	* Check GPG ID key *
+
+		# gpg --list-secret-keys --keyid-format LONG
+
+			/Users/hubot/.gnupg/secring.gpg
+			------------------------------------
+			sec   4096R/3AA5C34371567BD2 2016-03-10 [expires: 2017-03-10]
+			uid                          Hubot 
+			ssb   4096R/42B317FD4BA89E7A 2016-03-10
+
+
+	GPG ID Key : 3AA5C34371567BD2 --> ID Key
+
+	* GPG PUB Key *
+
+		# gpg --armor --export 3AA5C34371567BD2
+
+	* Make key public *
+
+		# gpg --keyserver keyserver.ubuntu.com --send-key C80589C506389F19  --> "keyserver.ubuntu.com" is the server and 		"C80589C506389F19" private key
+
+
+
+***** Docker *****	https://www.youtube.com/watch?v=bU2NNFJ-UXA&list=PLhW3qG5bs-L99pQsZ74f-LC-tOEsBp2rK&index=15
+	
+
+
+	Pull docker image from docker hub
+
+		# docker pull <image-name:tag>
+
+	Run image
+
+		# docker run <image-name:tag> or # docker run <image-id>
+
+	List all images on the system
+
+		# docker images
+
+	List all running containers
+
+		# docker ps
+
+	List all containers	
+
+		# docker ps -a	
+
+
+	Run newly built images
+
+		# docker run --name "container-name" -p <hostport>:<containerport> <images:tag> OR
+		# docker run -it -d -p <hostport:containerport> "container-id"
+
+	To open container
+
+		# docker exec -it "container-id" bash
+
+	Delete images
+
+		# docker rmi "images-id" --> container should not running
+
+	Delete container
+
+		# docker rm "container-id" --> container should not running
+		# docker rm -f "container-id" --> force delete
+
+	Stop container
+
+		# docker stop "container-id"
+		# docker kill "container-id" --> force stop
+
+	Start container
+
+		# docker start "container-id"
+
+
+
+	Create Image using DockerFile
+
+		# vi Dockerfile
+			
+			FROM ubuntu
+
+			MAINTAINER mark q
+
+			RUN apt-get update
+
+			CMD ["echo", "Hello World"]
+
+		# docker build -t myimage1:1.0 . --> "Used dot ( . ) if you're already in folder where DockerFile is located or put exact location path if not"	
+
+
+	Check status of Container
+
+		#docker stats container-name or docker stats --> to see all container status	
+
+
+	Create Image using Docker-Compose
+
+		#vi docker-compose.yml
+
+			version: '3'
+
+			services:
+
+			        web:
+			                image: nginx
+			                ports:
+			                - 8082:80
+
+			        database:
+
+			                image: redis
+
+	Check docker-compose validity
+
+		# docker-compose config
+
+	Run docker-compose file
+
+		# docker-compose up -d or docker-compose -f filename.yml up -d --> if file not named docker-compose.yml. Also you'r located where the file is before run the command 
+
+	Stop docker-compose
+
+		# docker-compose down -d
+
+	Container scali
+
+		# docker-compose up -d --scale database=4 --> will add 4 containers based on the services you want
+
+
+	To create Volume name
+
+		# docker volume create volume-name
+
+	Check list of volume
+
+		# docker volume ls
+
+	Inspect volume to get details
+
+		#docker volume inspect volume-name
+
+	Remove volume
+
+		# docker volume rm volume-name
+
+		# docker volume prune  --> remove all unused volume
+
+	
+			
+
+***** SSL CA *****
+
+
+	Create Private_key
+		
+		# openssl genrsa -des3 -out myCA.key 2048
+
+	Create Pub_key
+
+		#openssl req -x509 -new -nodes -key myCA.key -sha256 -days 1825 -out myCA.pem
+	
+	Check CA
+		
+		#openssl x509 -noout -text -in myCA.pem
+
+
+***** Self Signed SSL Cert *****
+
+	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout q2a.key -out q2a.crt
+
+
+
+***** SSH key *****
+
+	Create SSH Private ans Public key
+
+		# ssh-keygen -t rsa
+
+	Copy public_key to the server wants to access without inputting password.
+
+		# ssh-copy-id demo@198.51.100.0 --> username and ip of the server want to access.
+
+	Add public key of user
+
+		# mkdir -p ~/.ssh/	--> you should logged in using user's account.
+
+		# cd .ssh	--> then create authorized.keys file.
+
+		# vi authorized.keys	--> paste the user pub key.
+		
+		# chmod 700 mkt.gpisbone.net	--> to make it private.
+
+		# chown -R username:username /home/username/.ssh
+		# chmod 700 /home/username/.ssh
+		# chmod 600 /home/username/.ssh/authorized_keys
+
+
+***** MySQL dDatabase Dump *****
+
+	For Export:
+
+	    mysqldump -u [user] -p [db_name] | gzip > [filename_to_compress.sql.gz] 
+
+	For Import:
+
+  		gunzip < [compressed_filename.sql.gz]  | mysql -u [user] -p[password] [databasename] 
+
+
+
+
+
+
+
+
+
+
+Installing Docker in Centos7
+
+	https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Install-Docker-and-Docker-Compose-(Centos-7)
+
+
+SSL pub and private key generator
+
+	https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx
+
+
+
+
+
+
+
+
+
