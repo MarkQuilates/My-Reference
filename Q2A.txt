@@ -111,7 +111,7 @@ server {
 
 ***** Self Signed SSL Cert *****
 
-	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout wiki.key -out wiki.crt
+	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout q2a.key -out q2a.crt
 
 
 ##### HTTPS #####
