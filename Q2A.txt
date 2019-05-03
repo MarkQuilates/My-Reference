@@ -1,0 +1,207 @@
+
+Referrence : https://www.howtoforge.com/running-question2answer-on-nginx-lemp-on-debian-squeeze-ubuntu-12.10
+
+
+#Update Ubuntu 18.04
+
+	First, update the list of packages:
+
+		# sudo apt-get update -y
+
+	Next, install the updates:
+
+		# sudo apt-get upgrade -y
+
+
+# How to install MySQL Percona 5.7 in Ubuntu 18.04.2
+
+	# wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
+	# sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
+	# sudo apt-get update
+	# sudo apt-get install percona-server-server-5.7
+	# sudo systemctl enable mysql
+
+	# sudo mysql -v --> Check version
+
+
+# How to install Nginx in Ubuntu 18.04.2
+
+	# sudo apt-get install nginx -y
+	# sudo systemctl enable nginx.service
+	# sudo nginx -v
+
+# How to install Php7.2 in Ubuntu 18.04.2
+
+	# sudo apt install php7.2 php7.2-fpm php7.2-mysql php-common php7.2-cli php7.2-common php7.2-json php7.2-opcache php7.2-readline php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl
+	# sudosystemctl enable php7.2-fpm.service
+	
+	# sudo systemctl restart nginx.service
+
+
+# Installing Answer2Question application
+
+	# mkdir -p /usr/share/nginx/q2a
+	# apt-get install unzip
+	# cd /tmp
+	# mkdir q2a 
+	# cd q2a 
+	# wget http://www.question2answer.org/question2answer-latest.zip
+	# unzip question2answer-latest.zip
+	# rm -f question2answer-latest.zip
+	# cd question2answer/
+	# mv * .htaccess /usr/share/nginx/q2a
+	# chown -R www-data:www-data /usr/share/nginx/q2a
+	
+	##### MYSQL Creating database #####
+
+	# sudo mysqladmin -u root -p create q2a_database 
+	# sudo mysql -u root -p
+	# GRANT ALL PRIVILEGES ON q2a.* TO 'q2a_admin'@'localhost' IDENTIFIED BY 'q2a_admin_password';
+	# GRANT ALL PRIVILEGES ON q2a.* TO 'q2a_admin'@'localhost.localdomain' IDENTIFIED BY 'q2a_admin_password';
+	# FLUSH PRIVILEGES;
+	# quit;
+
+	# sudo vi /etc/nginx/sites-available/q2a.conf
+
+
+##### HTTP #####
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        root /usr/share/nginx/q2a;
+        index index.php index.html index.htm index.nginx-debian.html;
+
+        location = /favicon.ico {
+                log_not_found off;
+                access_log off;
+        }
+
+        location = /robots.txt {
+                allow all;
+                log_not_found off;
+                access_log off;
+        }
+
+       # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
+
+        location ~ /\. {
+                deny all;
+                access_log off;
+                log_not_found off;
+        }
+
+        location / {
+                try_files $uri $uri/ /index.php?qa-rewrite=$uri&$args;
+        }
+
+        location ~ \.php$ {
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+                include snippets/fastcgi-php.conf;
+        }
+
+
+        location ~ /\.ht {
+                deny all;
+        }
+}
+
+
+***** Self Signed SSL Cert *****
+
+	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout wiki.key -out wiki.crt
+
+
+##### HTTPS #####
+
+server {
+
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        server_name _;
+        return 301 https://$host$request_uri;
+}
+
+
+server {
+
+        listen 443 ssl http2 default_server;
+        listen [::]:443 ssl http2 default_server;
+        ssl_certificate /home/mark/q2a.crt;
+        ssl_certificate_key /home/mark/q2a.key;
+
+        server_name www.q2a.com;
+
+        location / {
+
+                root /var/www/q2a.com/web;
+                index index.php index.html index.htm index.nginx-debian.html;
+
+                location = /favicon.ico {
+                        log_not_found off;
+                        access_log off;
+                }
+
+                location = /robots.txt {
+                        allow all;
+                        log_not_found off;
+                        access_log off;
+                }
+
+                # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
+
+                location ~ /\. {
+                        deny all;
+                        access_log off;
+                        log_not_found off;
+                }
+
+                location / {
+                        try_files $uri $uri/ /index.php?qa-rewrite=$uri&$args;
+                }
+
+                location ~ \.php$ {
+                        include snippets/fastcgi-php.conf;
+                        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+                }
+
+                location ~ /\.ht {
+                        deny all;
+                }
+        }
+}
+
+
+	# sudo ln -s /etc/nginx/site-available/q2a.conf /etc/nginx/site-enabled/q2a.conf
+	# sudo nginx -t
+	# sudo systemctl restart nginx
+
+	# cd /usr/share/nginx/q2a
+	# mv qa-config-exampe.php qa-config.php
+	# sudo vi qa-config.php
+
+	##### Fill in the correct database details: #####
+
+		[...]
+		        define('QA_MYSQL_HOSTNAME', 'localhost'); // try '127.0.0.1' or 'localhost' if MySQL on same server
+		        define('QA_MYSQL_USERNAME', 'q2a_admin');
+		        define('QA_MYSQL_PASSWORD', 'q2a_admin_password');
+		        define('QA_MYSQL_DATABASE', 'q2a');
+		[...]
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+	
