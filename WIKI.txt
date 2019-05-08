@@ -1,7 +1,7 @@
 
 Referrence : https://websiteforstudents.com/install-mediawiki-ubuntu-17-04-17-10-apache2-mariadb-php/
 
-#Update Ubuntu 18.04.2
+# Update Ubuntu 18.04.2
 
 	First, update the list of packages:
 
@@ -25,11 +25,17 @@ Referrence : https://websiteforstudents.com/install-mediawiki-ubuntu-17-04-17-10
 
 # How to install Nginx in Ubuntu 18.04.2
 
+	# sudo add-apt-repository ppa:ondrej/nginx
+	# sudo apt-get update
+
 	# sudo apt-get install nginx -y
 	# sudo systemctl enable nginx.service
 	# sudo nginx -v
 
 # How to install Php7.2 in Ubuntu 18.04.2
+
+	# sudo add-apt-repository ppa:ondrej/php
+	# sudo apt-get update
 
 	# sudo apt install php7.2 php7.2-fpm php7.2-mysql php-common php7.2-cli php7.2-common php7.2-json php7.2-opcache php7.2-readline php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl
 	# sudo systemctl enable php7.2-fpm.service
@@ -104,7 +110,7 @@ server {
 }
 
 
-***** Self Signed SSL Cert *****
+##### Self Signed SSL Cert #####
 
 	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout wiki.key -out wiki.crt
 
@@ -176,10 +182,29 @@ server {
 	# Follow the inscruction from the Reference link.
 
 
+##### Installing Parsoid for Wiki edit #####
+
+	# sudo apt install dirmngr
+	# sudo apt-key advanced --keyserver keys.gnupg.net --recv-keys 90E9F83F22250DD7
+	# sudo apt-add-repository "deb https://releases.wikimedia.org/debian jessie-mediawiki main"
+	# sudo apt install parsoid
+
+	# vi /etc/mediawiki/parsoid/config.yaml
+	
+	Edit:		
+		uri: 'https://192.168.213.148/api.php'
+		domain: '192.168.213.148'  # optional
+	Uncomment	
+		serverPort: 8000
+		strictSSL: false
+
+	# systemctl restart parsoid
 
 
-
-
+##### Update Ubuntu Repo #####
+	
+	# sudo add-apt-repository universe
+	# sudo apt-get update
 
 
 
