@@ -1,0 +1,244 @@
+
+Referrence : https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-zabbix-to-securely-monitor-remote-servers-on-ubuntu-18-04
+
+# Update Ubuntu 18.04.2
+
+	First, update the list of packages:
+
+		# sudo apt-get update -y
+
+	Next, install the updates:
+
+		# sudo apt-get upgrade -y
+
+
+# How to install MySQL Percona 5.7 in Ubuntu 18.04.2
+
+	# wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
+	# sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
+	# sudo apt-get update
+	# sudo apt-get install percona-server-server-5.7
+	# sudo systemctl enable mysql
+
+	# sudo mysql -v --> Check version
+
+
+##### MYSQL Creating database #####
+
+	# sudo mysqladmin -u root -p zabbix_db 
+	# sudo mysql -u root -p
+	# GRANT ALL PRIVILEGES ON zabbix_db.* TO 'zabbixadmin'@'localhost' IDENTIFIED BY 'zabbixpassword';
+	# FLUSH PRIVILEGES;
+	# quit;
+
+# How to install Nginx in Ubuntu 18.04.2
+
+	# sudo add-apt-repository ppa:ondrej/nginx
+	# sudo apt-get update
+
+	# sudo apt-get install nginx -y
+	# sudo systemctl enable nginx.service
+	# sudo nginx -v
+
+# How to install Php7.2 in Ubuntu 18.04.2
+
+	# sudo add-apt-repository ppa:ondrej/php
+	# sudo apt-get update
+
+	# sudo apt install php7.2 php7.2-fpm php7.2-mysql php-common php7.2-cli php7.2-common php7.2-json php7.2-opcache php7.2-readline php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl
+
+	# sudo systemctl enable php7.2-fpm.service
+	
+	# sudo systemctl restart nginx.service
+
+
+# Installing Zabbix 4.2 application
+
+	# wget https://repo.zabbix.com/zabbix/4.2/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.2-1+bionic_all.deb
+	# sudo dpkg -i zabbix-release_4.2-1+bionic_all.deb
+	# sudo apt update
+	# sudo apt install zabbix-frontend-php
+	# sudo chown -R www-data:www-data /usr/share/zabbix
+	# sudo vi /etc/php/7.2/fpm/php.ini
+
+		Copy the value of the ff parameters;
+
+			max_execution_time 300
+			post_max_size 16M
+			max_input_time 300
+			date.timezone Asia/Manila
+
+	# sudo systemctl restart php7.2-fpm
+
+	# zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql -uzabbixadmin -p zabbix_db
+	# sudo vi /etc/nginx/sites-available/zabbix.conf
+
+
+##### HTTP #####
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        root /usr/share/zabbix;
+        index index.php index.html index.htm index.nginx-debian.html;
+
+        location = /favicon.ico {
+                log_not_found off;
+                access_log off;
+        }
+
+        location = /robots.txt {
+                allow all;
+                log_not_found off;
+                access_log off;
+        }
+
+       # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
+
+        location ~ /\. {
+                deny all;
+                access_log off;
+                log_not_found off;
+        }
+
+        location / {
+                try_files $uri $uri/ /index.php?qa-rewrite=$uri&$args;
+        }
+
+        location ~ \.php$ {
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+                include snippets/fastcgi-php.conf;
+        }
+
+
+        location ~ /\.ht {
+                deny all;
+        }
+}
+
+
+##### Self Signed SSL Cert #####
+
+	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout zabbix.key -out zabbix.crt
+
+
+##### HTTPS #####
+
+server {
+
+
+        listen 80 default_server;
+
+        listen 443 ssl;
+        ssl_certificate /etc/nginx/ssl-star/star.crt;
+        ssl_certificate_key /etc/nginx/ssl-star/star.key;
+        ssl_session_cache shared:SSL:20m;
+        ssl_session_timeout 60m;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+        ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+
+
+        set_real_ip_from 0.0.0.0/0;
+        real_ip_header X-Forwarded-For;
+        real_ip_recursive on;
+
+        allow 116.50.230.98;
+        allow 52.192.229.206;
+        deny all;
+
+
+        server_name www.zabbix.com;
+
+        root /usr/share/zabbix;
+                index index.php index.html index.htm index.nginx-debian.html;
+
+                location = /favicon.ico {
+                        log_not_found off;
+                        access_log off;
+                }
+
+                location = /robots.txt {
+                        allow all;
+                        log_not_found off;
+                        access_log off;
+                }
+
+                # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
+
+                location ~ /\. {
+                        deny all;
+                        access_log off;
+                        log_not_found off;
+                }
+
+                location / {
+                        try_files $uri $uri/ =404;
+                }
+
+                location ~ \.php$ {
+                        include snippets/fastcgi-php.conf;
+                        fastcgi_pass unix:/var/run/php7.0-fpm.sock;
+                }
+
+                location ~ /\.ht {
+                        deny all;
+                }
+        }
+
+
+
+	# sudo ln -s /etc/nginx/sites-available/zabbix.conf /etc/nginx/sites-enabled/zabbix.conf
+	# sudo nginx -t
+	# sudo systemctl restart nginx
+
+	# Follow the inscruction from the Reference link.
+
+
+
+##### Update Ubuntu Repo #####
+	
+	# sudo add-apt-repository universe
+	# sudo apt-get update
+
+
+
+# Slack Alert
+	
+	Reference: https://github.com/ericoc/zabbix-slack-alertscript
+
+
+
+
+# Add this line to crontab -e
+	
+*/1 * * * * /etc/zabbix/zbx_nginx_stats.py
+
+  
+# Add these in below nginx block.
+
+      location /dE8hoCJoyutI0roNOnsaE3UmsKdA9Cet {
+                stub_status on;
+                access_log off;
+        }
+
+	
+# Add this to all hosts in aws to prevent hosts file update.
+
+	# touch /etc/aws/opsworks/skip-hosts-update
+
+
+
+
+
+
+
+
+
+
+
+
+

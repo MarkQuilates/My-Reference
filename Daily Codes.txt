@@ -291,7 +291,8 @@ Reformat HDD:
 
 	Run image
 
-		# docker run <image-name:tag> or # docker run <image-id>
+		# docker run <image-name:tag> or 
+		# docker run <image-id>
 
 	List all images on the system
 
@@ -407,6 +408,11 @@ Reformat HDD:
 
 		# docker volume prune  --> remove all unused volume
 
+	Copy image of running container
+
+		# docker commit name-of-container name-of-image
+
+
 	
 			
 
@@ -469,11 +475,30 @@ Reformat HDD:
 
 
 
+***** Update Ubuntu Repo *****
+	
+	# sudo add-apt-repository universe
+	# sudo apt-get update
+
+
+
+***** Add Swap Memory *****
+	
+	# free -h --> Check Available Memory
+	# df -h --> Check Available Storage
+	# fallocate -l 4G /swapfile
+	# chmod 600 /swapfile
+	# mkswap /swapfile
+	# swapon /swapfile
+	# echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 
 
 
 
+***** PHP Active Version *****
+
+	# update-alternatives --config php
 
 
 Installing Docker in Centos7
@@ -486,6 +511,32 @@ SSL pub and private key generator
 	https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx
 
 
+
+
+***** Set Timezone in Ububtu *****
+
+	# sudo timedatectl set-timezone Asia/Manila
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+docker run -d --name mysql_percona -v /percona/wikidb:/etc/mysql -e MYSQL_ROOT_PASSWORD=password  -p 6603:3306 percona/percona-server:5.7
+
+docker exec mysql_percona sh -c 'exec mysqldump --all-databases -uroot -ppassword' &gt; /home/test/mark/mediawikidb.sql
 
 
 
