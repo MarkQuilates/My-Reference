@@ -555,7 +555,7 @@ production:
   database: bitnami_redmine
   host: mariadb
   username: redmine
-  password: W76u2sCGBY
+  password: 123
   encoding: utf8
 
 
