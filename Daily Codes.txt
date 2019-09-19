@@ -308,7 +308,6 @@ Reformat HDD:
 
 
 	Run newly built images
-
 		# docker run --name "container-name" -p <hostport>:<containerport> <images:tag> OR
 		# docker run -it -d -p <hostport:containerport> "container-id"
 
@@ -451,13 +450,8 @@ Reformat HDD:
 	Add public key of user
 
 		# mkdir -p ~/.ssh/	--> you should logged in using user's account.
-
 		# cd .ssh	--> then create authorized.keys file.
-
-		# vi authorized.keys	--> paste the user pub key.
-		
-		# chmod 700 mkt.gpisbone.net	--> to make it private.
-
+		# vi authorized_keys	--> paste the user pub key.
 		# chown -R username:username /home/username/.ssh
 		# chmod 700 /home/username/.ssh
 		# chmod 600 /home/username/.ssh/authorized_keys
@@ -519,19 +513,69 @@ SSL pub and private key generator
 
 
 
+***** Get Window10 LicenseKey *****
+
+	Open Windows PowerShell (Admin)	
+
+		# wmic path SoftwareLicensingService get OA3xOriginalProductKey		--> Type this command and it will display the key below.
+
+
+
+***** MySQL *****
+
+	# mysql -h 172.17.0.2 -P 3306 --protocol=TCP -u root -p		--> If inside in docker
+
+	# mysqldump -h 172.20.0.2 -P 3306 --protocol=TCP -u root bitnami_redmine | gzip > bitnami_redmine_db.sql.gz	--> Backup export database
+	
+	# gunzip < bitnami_redmine_db.sql.gz | mysql -h 172.18.0.2 -P 3306 --protocol=TCP -u root -p test_database	--> Backup import database
+
+	# show databases;		--> Show list of created database.
+	# use name_of_database;		--> To access database selected.
+	# show tables;			--> Show all tables in inside database;
+	# select * from users;		--> Show data of users table.
+	
+	# upadate users set admin = 1 where login = "devops_test";	--> Update column login devops_test details from users table, column admin, 0 to 1. 
+
+	# flush priviledges	--> Take effect changes.
+	# quit			--> Exit to MySQL.
+	
 
 
 
 
 
 
+# Redmine Migrate
+
+docker run -d -p 8089:3000  -v /bitnami/redmine_latest:/bitnami/redmine --name redmine --restart unless-stopped --net redmine-network bitnami/redmine
 
 
+production:
+  adapter: mysql2
+  database: bitnami_redmine
+  host: mariadb
+  username: redmine
+  password: W76u2sCGBY
+  encoding: utf8
 
 
+  # ==== SMTP server at using TLS (GMail)
 
 
+  email_delivery:
+    delivery_method: :smtp
+    smtp_settings:
+      enable_starttls_auto: true
+      address: "smtp.gmail.com"
+      port: 587
+      domain: "smtp.mnltechnology.com" # 'your.domain.com' for GoogleApps
+      authentication: :plain
+      user_name: "redmine@mnltechnology.com"
+      password: "N35Lcl4lzhj7kK7zGm"
 
+
+	# /cd /opt/bitnami/redmine
+	# bundle exec rake db:migrate RAILS_ENV=production 
 
 
 docker run -d --name mysql_percona -v /percona/wikidb:/etc/mysql -e MYSQL_ROOT_PASSWORD=password  -p 6603:3306 percona/percona-server:5.7
