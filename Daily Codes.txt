@@ -568,10 +568,10 @@ production:
       enable_starttls_auto: true
       address: "smtp.gmail.com"
       port: 587
-      domain: "smtp.mnltechnology.com" # 'your.domain.com' for GoogleApps
+      domain: "smtp.mnl.com" # 'your.domain.com' for GoogleApps
       authentication: :plain
-      user_name: "redmine@mnltechnology.com"
-      password: "N35Lcl4lzhj7kK7zGm"
+      user_name: "redmine@mnl.com"
+      password: "123"
 
 
 	# /cd /opt/bitnami/redmine
