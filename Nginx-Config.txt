@@ -1,0 +1,260 @@
+
+
+***** Installing NGINX from source
+
+Download nginx installer
+
+	#https://www.nginx.org/en/download.html
+
+Copy link address of stable version
+
+	http://nginx.org/download/nginx-1.14.0.tar.gz
+
+Goto terminal:
+
+	#wget http://nginx.org/download/nginx-1.14.0.tar.gz
+	#tar -xvf nginx-1.14.0.tar.gz
+
+Go to nginx folder:
+	
+	#cd nginx...
+
+Install prerequisite:
+
+	#apt-get install build-essential libpcre3 libpcre3-dev openssl libssl-dev
+
+	# sudo groupadd -r nginx
+	# sudo useradd -r nginx -g nginx
+
+	#./configure --prefix=/etc/nginx --user=nginx --group=nginx --sbin-path=/usr/sbin/nginx 	--conf-path=/etc/nginx/nginx.conf --pid-path=/var/run/nginx.pid --lock-				path=/var/run/nginx.lock --error-log-path=/var/log/nginx/error.log --http-log-			path=/var/log/nginx/access.log --with-http_gzip_static_module --with-				http_stub_status_module --with-http_ssl_module --with-pcre --with-file-aio --with-		http_realip_module --without-http_proxy_module
+
+	#make && make install
+
+
+
+./configure --prefix=/etc/nginx --user=nginx --group=nginx --sbin-path=/usr/sbin/nginx --conf-path=/etc/nginx/nginx.conf --pid-path=/var/run/nginx.pid --lock-path=/var/run/nginx.lock --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-http_gzip_static_module --with-http_stub_status_module --with-http_ssl_module --with-pcre --with-file-aio --with-http_realip_module --without-http_proxy_module
+
+
+
+
+
+
+
+
+
+
+vim /etc/apt/sources.list
+
+deb http://nginx.org/packages/mainline/ubuntu xenial nginx
+deb-src http://nginx.org/packages/mainline/ubuntu xenial nginx
+
+wget http://nginx.org/keys/nginx_signing.key
+
+apt-key add nginx_signing.key
+
+apt-get update
+
+apt-get install nginx
+
+systemctl start nginx
+
+
+
+
+
+
+	#apt-get install build-essential libpcre3 libpcre2-dev openssl libssl-dev ---> prerequisites
+
+
+
+
+
+	#sudo virsh list ---> Check list on VMs
+
+	#netstat -nltp ---> Check open port
+
+
+
+# NGINX LOAD BALANCER
+
+	https://www.youtube.com/watch?v=9SC1yabcz4k
+	
+	/etc/nginx/nginx.conf
+
+	http{	
+		upstream lbmysite {
+		 server cnev01;
+		 server cnv02;
+		}
+
+		server {
+		 location / {
+			proxy_pass http://lbmysite; 
+	
+			    }
+		       }
+
+	    }
+
+
+
+# REVERSE PROXY
+
+	https://www.youtube.com/watch?v=lalR2i6E-Bk
+
+	/etc/nginx/conf.d
+
+	location /admin {
+		proxy_pass http://192.168.1.1;
+	}
+
+	location /app {
+		proxy_pass http://192.168.1.2/application;
+	}
+
+.conf
+	server {
+		server_name_: 
+		location / {
+		 proxy_pass http://192.168.1.1;
+		}
+	}
+
+
+# X REAL IP
+
+	server {
+		server_name _: 
+		location / {
+		 proxy_pass http://192.168.1.1;
+		 proxy_set_header X-Real-IP $remote_addr;  to nginx.conf add to log_format "$http_x_real_ip";
+		}
+	}
+
+
+
+proxy_set_header X-Real-IP $remote_addr;
+
+
+
+
+
+
+
+
+# mark-jenkins.tk .conf
+
+server {
+        listen 80 default_server;
+        server_name _;
+
+        location / {
+                return 301 https://$host/$request_uri;
+        }
+}
+
+server {
+        listen 80 default_server;
+        server_name _;
+
+        location / {
+               return 301 https://$host$request_uri;
+        }
+}
+
+server {
+
+        listen 443 ssl; # managed by Certbot
+        ssl_certificate /etc/letsencrypt/live/mark-jenkins.tk/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/mark-jenkins.tk/privkey.pem; # managed by Certbot
+        include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+        server_name mark-jenkins.tk;
+
+        location / {
+                proxy_pass http://localhost:8080;
+                proxy_http_version  1.1;
+                proxy_set_header    Host $server_name:$server_port;
+                proxy_set_header    X-Forwarded-Host $http_host;
+                proxy_set_header    X-Forwarded-Proto $scheme;
+                proxy_set_header    X-Forwarded-For $remote_addr;#
+                proxy_set_header    Upgrade $http_upgrade;
+        }
+}
+
+
+docker-compose
+
+version: '3.5'
+
+services:
+  my_proxy:
+    image: 'nginx_pkg:latest'
+    container_name: my_proxyclear
+    ports:
+      - '8080:80'
+    volumes:
+      - './conf/proxy.conf:/etc/nginx/conf.d/default.conf'
+    networks:
+      nginx_network:
+        aliases:
+          - my_proxy
+
+  my_loadbalancer:
+    image: 'nginx_pkg:latest'
+    container_name: my_loadbalancer
+    ports:
+      - '8081:80'
+    volumes:
+      - './conf/lb.conf:/etc/nginx/conf.d/default.conf'
+    networks:
+      nginx_network:
+        aliases:
+          - my_loadbalancer
+    links:
+      - my_proxy
+
+  my_nginx_01:
+    image: 'nginx_pkg:latest'
+    container_name: my_nginx_01
+    ports:
+      - '8082:80'
+    volumes:
+      - './conf/nginx01/index.html:/usr/share/nginx/html/index.html'
+    networks:
+      nginx_network:
+        aliases:
+          - my_nginx_01
+    links:
+      - my_proxy
+
+  my_nginx02:
+    image: 'nginx_pkg:latest'
+    container_name: my_nginx_02
+    ports:
+      - '8083:80'
+    volumes:
+      - './conf/nginx02/index.html:/usr/share/nginx/html/index.html'
+    networks:
+      nginx_network:
+        aliases:
+          - my_nginx_02
+    links:
+      - my_proxy
+
+networks:
+  nginx_network:
+    driver: bridge
+
+
+
+
+
+
+
+
+
+
+
+
