@@ -76,47 +76,52 @@ Referrence : https://www.digitalocean.com/community/tutorials/how-to-install-and
 
 ##### HTTP #####
 
-server {
-        listen 80 default_server;
-        listen [::]:80 default_server;
-        root /usr/share/zabbix;
-        index index.php index.html index.htm index.nginx-debian.html;
+	server {
+	        listen 80 default_server;
+        	listen [::]:80 default_server;
+        	root /usr/share/zabbix;
+        	index index.php index.html index.htm index.nginx-debian.html;
 
-        location = /favicon.ico {
-                log_not_found off;
-                access_log off;
-        }
+        	location = /favicon.ico {
+                	log_not_found off;
+                	access_log off;
+        	}
 
-        location = /robots.txt {
-                allow all;
-                log_not_found off;
-                access_log off;
-        }
+        	location = /robots.txt {
+                	allow all;
+                	log_not_found off;
+                	access_log off;
+        	}
 
-       # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
+       	# Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
 
-        location ~ /\. {
-                deny all;
-                access_log off;
-                log_not_found off;
-        }
+        	location ~ /\. {
+                	deny all;
+                	access_log off;
+                	log_not_found off;
+        	}
 
-        location / {
-                try_files $uri $uri/ /index.php?qa-rewrite=$uri&$args;
-        }
+        	location / {
+                	try_files $uri $uri/ /index.php?qa-rewrite=$uri&$args;
+        	}
 
-        location ~ \.php$ {
-                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
-                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-                include fastcgi_params;
-                include snippets/fastcgi-php.conf;
-        }
+        	location ~ \.php$ {
+                	fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+                	fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                	include fastcgi_params;
+                	include snippets/fastcgi-php.conf;
+        	}
 
 
-        location ~ /\.ht {
-                deny all;
-        }
-}
+        	location ~ /\.ht {
+                	deny all;
+        	}
+
+                location /nginx_status {
+                        stub_status on;
+                        access_log off;
+                }
+	}
 
 
 ##### Self Signed SSL Cert #####
@@ -130,28 +135,20 @@ server {
 
 
         listen 80 default_server;
-
         listen 443 ssl;
-        ssl_certificate /etc/nginx/ssl-star/star.crt;
-        ssl_certificate_key /etc/nginx/ssl-star/star.key;
+        ssl_certificate /etc/nginx/zabbix.crt;
+        ssl_certificate_key /etc/nginx/zabbix.key;
         ssl_session_cache shared:SSL:20m;
         ssl_session_timeout 60m;
         ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
         ssl_prefer_server_ciphers on;
         ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
 
-
-
         set_real_ip_from 0.0.0.0/0;
         real_ip_header X-Forwarded-For;
         real_ip_recursive on;
 
-        allow 116.50.230.98;
-        allow 52.192.229.206;
-        deny all;
-
-
-        server_name www.zabbix.com;
+        server_name zabbix.markquilates.com;
 
         root /usr/share/zabbix;
                 index index.php index.html index.htm index.nginx-debian.html;
@@ -179,14 +176,23 @@ server {
                         try_files $uri $uri/ =404;
                 }
 
-                location ~ \.php$ {
-                        include snippets/fastcgi-php.conf;
-                        fastcgi_pass unix:/var/run/php7.0-fpm.sock;
-                }
+        	location ~ \.php$ {
+                	fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+               		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                	include fastcgi_params;
+                	include snippets/fastcgi-php.conf;
+        	}
 
                 location ~ /\.ht {
                         deny all;
                 }
+
+                location /nginx_status {
+                        stub_status on;
+                        access_log off;
+                }
+
+
         }
 
 
@@ -194,8 +200,6 @@ server {
 	# sudo ln -s /etc/nginx/sites-available/zabbix.conf /etc/nginx/sites-enabled/zabbix.conf
 	# sudo nginx -t
 	# sudo systemctl restart nginx
-
-	# Follow the inscruction from the Reference link.
 
 
 
@@ -206,24 +210,48 @@ server {
 
 
 
+
+# Follow the inscruction from the Reference link.
+
+
+
 # Slack Alert
 	
 	Reference: https://github.com/ericoc/zabbix-slack-alertscript
 
 
-
-
-# Add this line to crontab -e
+# Telegram Alert
 	
-*/1 * * * * /etc/zabbix/zbx_nginx_stats.py
+	Reference: https://github.com/ableev/Zabbix-in-Telegram
+		
+	Install Dependencies:
+
+		# apt install python-requests
+		# apt install python-requests-oauthlib
+		# apt install python-socks
+		# pip install -U requests
+
+	# https://api.telegram.org/bot748629233:AAFI2Bp26Jt30KWcIeHLUTUQQn8_6FFirUU/getUpdates		--> Check Telegarm API logs
+
+## Nginx Traffic ##
+
+	# Add this line to crontab -e
+	
+		*/1 * * * * /etc/zabbix/zbx_nginx_stats.py
 
   
-# Add these in below nginx block.
+	# Add these in below nginx block bebore closing "}".
 
-      location /dE8hoCJoyutI0roNOnsaE3UmsKdA9Cet {
-                stub_status on;
-                access_log off;
-        }
+      		location /nginx_status {
+                	stub_status on;
+                	access_log off;
+        	}
+
+# Check the destination in zabbix script "zbx_nginx_stats.py".
+
+	# URL to nginx stat (http_stub_status_module)
+	stat_url = 'http://127.0.0.1/nginx_status'
+
 
 	
 # Add this to all hosts in aws to prevent hosts file update.
