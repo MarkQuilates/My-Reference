@@ -1,0 +1,404 @@
+
+
+### Elasticsearch ###
+
+	# apt install openjdk-8-jdk
+	# wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+	# wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.2.0-amd64.deb
+	# sudo dpkg -i elasticsearch-7.2.0-amd64.deb
+
+	# vi /etc/elasticsearch/elasticsearch.yml
+
+		cluster.name: my-application
+		node.name: node-1
+		path.data: /var/lib/elasticsearch
+		path.logs: /var/log/elasticsearch
+		network.host: localhost
+		http.port: 9200
+		cluster.initial_master_nodes: ["node-1", "node-2"]
+
+		discovery.seed_hosts: ["127.0.0.1", "host2"] --> Add this in Kibana not working
+
+	# systemctl restart elasticsearch
+	# systemctl enable elasticsearch
+
+
+
+### Kibana ###
+
+	# wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+	# wget https://artifacts.elastic.co/downloads/kibana/kibana-7.2.0-amd64.deb
+	# sudo dpkg -i kibana-7.2.0-amd64.deb
+
+	# vi /etc/kibana/kibana.yml
+
+		server.port: 5601
+		server.host: "localhost"
+		server.name: "spiralworks-elkstack"
+		elasticsearch.hosts: ["http://localhost:9200"]
+		elasticsearch.pingTimeout: 1500
+		elasticsearch.requestTimeout: 30000
+		elasticsearch.shardTimeout: 30000
+		elasticsearch.startupTimeout: 5000
+
+	# systemctl restart kibana
+	# systemctl enable kibana
+
+
+
+### Logstash ###
+
+	# sudo apt-get install apt-transport-https
+	# echo "deb https://artifacts.elastic.co/packages/7.2/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.2.list
+	# sudo apt-get update && sudo apt-get install logstash
+	# cd /etc/logstash
+	# sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout elk1.key -out elk1.crt
+
+	# vi /etc/logstash/conf.d/pipeline.conf
+
+		input {
+		        beats {
+		                port => 5044
+		                ssl => true
+		                ssl_certificate => "/etc/logstash/elk1.crt"
+		                ssl_key => "/etc/logstash/elk1.key"
+		        }
+		}
+
+		filter {
+
+		        grok {
+		                match => { "message" => "%{IPORHOST:remote_addr} (?:%{USER:ident}|-) (?:%{USER:auth}|-) \[%{HTTPDATE:timestamp}\] \"%{WORD:method} %{URIPATHPARAM:request_path} HTTP/%{NUMBER:httpversion}\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) (?:\"(?:%{URI:referrer}|-)\"|%{QS:referrer}) %{QS:user_agent} \"(:|(?<x_forwarded_for>%{IP:xff_clientip}(, .*)?)|-)\" \<millis\=%{GREEDYDATA:request_duration}\>,\ \<host\=%{GREEDYDATA:domain}\>,\ \<gzipratio\=(?:%{GREEDYDATA:gzip}|-)\>"}
+		        }
+
+		        grok {
+		                match => { "request_path" => "^/api/v2/members/%{WORD:member_id}/"}
+		        }
+
+
+		        geoip {
+ 		                source => "remote_addr"
+		        }
+
+		        useragent {
+		                source => "user_agent"
+		        }
+
+
+
+		}
+
+
+		filter {
+		        if [geoip][region_name] == "Guangxi" {
+		                mutate {
+		                        replace => [ "[geoip][region_name]", "Guangxi Zhuang Autonomous Region" ]
+		                }
+		        }
+
+		        if [geoip][region_name] == "Inner Mongolia Autonomous Region" {
+		                mutate {
+		                        replace => [ "[geoip][region_name]", "Inner Mongolia" ]
+		                }
+		        }
+		}
+
+
+		filter {
+
+		        if [os] != "null" or [os_major] != "null" or [os_minor] != "null" {
+		                mutate {
+		                        add_field => {
+		                                "os_version" => "%{os} %{os_major}.%{os_minor}"
+		                        }
+		                }
+	        	}
+
+		        if [name] != "null" or [major] != "null" or [minor] != "null" {
+		                mutate {
+					add_field => {
+	                                	"browser_version" => "%{name} %{major}.%{minor}"
+		                        }
+		                }
+		        }
+
+		}
+
+
+		output {
+		        elasticsearch {
+		        hosts => [ "localhost:9200" ]
+		        manage_template => false
+		        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+		        document_type => "%{[@metadata][type]}"
+		        }
+		}
+
+	
+	# /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/pipeline.conf --config.test_and_exit		--> Check pipeline config
+	# systemctl restart logstash
+	# systemctl enable logstash
+
+
+
+### Nginx ###
+
+# How to install Nginx in Ubuntu 18.04.2
+
+	# sudo add-apt-repository ppa:ondrej/nginx
+	# sudo apt-get update
+
+	# sudo apt-get install nginx -y
+	# sudo systemctl enable nginx.service
+	# sudo nginx -v
+
+	# mkdir /etc/nginx/.htpasswd.users
+	# echo "mark:`openssl passwd -apr1`" | sudo tee -a /etc/nginx/.htpasswd.users
+
+	# vi /etc/nginx/sites-available/kibana.conf
+
+		server {
+        		listen 80;
+
+        		include /etc/nginx/realip.conf;
+        		include /etc/nginx/whitelist.conf;
+
+        		auth_basic "Authorized users only";
+        		auth_basic_user_file /etc/nginx/.htpasswd.users;
+
+        		location / {
+                		proxy_http_version 1.1;
+                		proxy_pass http://localhost:5601;
+        		}
+
+
+        		location /bundles/ {
+                		add_header 'Cache-Control' 'public, s-maxage=86400, max-age=86400';
+                		if ( $http_x_forwarded_proto = 'http' ) {
+                        		return 301 https://$host$request_uri;
+                		}
+                		proxy_http_version 1.1;
+                		proxy_pass http://localhost:5601;
+                		proxy_hide_header Cache-Control;
+                		proxy_hide_header Expires;
+        		}
+
+        		location /status {
+                	stub_status on;
+                	access_log off;
+        		}
+
+
+		}
+
+	# ln -s /etc/nginx/sites-available/kibana.conf /etc/nginx/sites-enable/kibana.conf
+	# nginx -t
+	# systemctl restart nginx
+
+
+
+### Curator ###
+
+	# deb [arch=amd64] https://packages.elastic.co/curator/5/debian stable main
+	# sudo apt-get update && sudo apt-get install elasticsearch-curator
+	# cd /usr/share/elasticsearch/
+	# sudo bin/elasticsearch-plugin install repository-s3
+	# bin/elasticsearch-keystore add s3.client.default.access_key --> Input aws access key
+	# bin/elasticsearch-keystore add s3.client.default.secret_key --> Input aws secret key
+
+	# curl -X PUT "localhost:9200/_snapshot/s3-backup" -H 'Content-Type: application/json' -d'
+	{
+	  "type": "s3",
+	  "settings": {
+	  	"bucket": "cms-elk-backup",	--> Name of S3 Bucket in AWS.
+	        "region": "ap-northeast-1"
+	  }
+	}'
+
+
+	# curl -XGET http://localhost:9200/_snapshot/s3-backup?pretty		--> Check if snapshot repo connected to AWS s3.
+	# curl -XGET http://localhost:9200/_snapshot/s3-backup/_all?pretty	--> Check if snapshot is created.
+	# mkdir /root/curator
+
+	# vi /root/curator/curator.yml
+
+		client:
+		  hosts: localhost
+		  port: 9200
+		  url_prefix:
+		  use_ssl: False
+		  certificate:
+		  client_cert:
+		  client_key:
+		  ssl_no_validate: False
+		  timeout: 30
+		  master_only: False
+
+		logging:
+		  loglevel: INFO
+		  logfile: /var/log/curator.log
+		  logformat: default
+		  blacklist: ['elasticsearch', 'urllib3']
+
+	# vi delete_indices.yml
+
+		actions:
+		  1:
+		    action: delete_indices
+		    description: >-
+		      Delete indices older than 7 days (based on index name), for filebeat-
+		      prefixed indices.
+		    options:
+		      ignore_empty_list: True
+		      timeout_override:
+		      continue_if_exception: False
+		      disable_action: False
+		    filters:
+		    - filtertype: pattern
+		      kind: prefix
+		      value: filebeat-
+		      exclude:
+		    - filtertype: age
+		      source: name
+		      direction: older
+		      timestring: '%Y.%m.%d'
+		      unit: days
+		      unit_count: 7
+		      exclude:
+
+	# vi snapshot.yml
+
+		actions:
+		  1:
+		    action: snapshot
+		    description: >-
+		      Snapshot filebeat- prefixed indices older than 1 day (based on index
+		      creation_date) with the default snapshot name pattern of
+		      'filebeat-%Y%m%d%H%M%S'.
+		    options:
+		      repository: s3-backup
+		      name:
+		      ignore_unavailable: False
+		      include_global_state: True
+		      partial: False
+		      wait_for_completion: True
+		      skip_repo_fs_check: False
+		      disable_action: False
+		    filters:
+		    - filtertype: pattern
+		      kind: prefix
+		      value: filebeat-
+		    - filtertype: age
+		      source: creation_date
+		      direction: older
+		      unit: days
+		      unit_count: 1
+
+	# curator --config /root/curator/curator.yml /root/curator/snapshot.yml		--> To run the snapshot.
+
+	# crontab -e
+
+		0 15 * * * /usr/bin/curator /root/curator/snapshots.yml --config /root/curator/curator.yml >> /var/log/curator.log 2>&1
+		0 16 * * * /usr/bin/curator /root/curator/delete_indices.yml --config /root/curator/curator.yml >> /var/log/curator.log 2>&1
+
+
+
+### Filebeat ###
+
+	# curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.2.0-amd64.deb
+	# sudo dpkg -i filebeat-7.2.0-amd64.deb
+
+	# vi /etc/filebeat/filebeat.yml
+
+		filebeat.inputs:
+		 - type: log
+		 enabled: true
+		 - /var/log/nginx/access.log
+
+		filebeat.config.modules:
+		 path: ${path.config}/modules.d/*.yml
+		 reload.enabled: false
+
+		setup.template.settings:
+		 index.number_of_shards: 1
+
+		setup.kibana:
+
+		output.logstash:
+		 hosts: ["elk1.prmths.club:5044"]
+		 ssl.certificate_authorities: ["/etc/logstash/new/elk1.crt"]
+
+		processors:
+		 - add_host_metadata: ~
+		 - add_cloud_metadata: ~
+
+		logging.level: debug
+		 logging.to_files: true
+		 logging.files:
+		 path: /var/log/filebeat
+		 name: filebeat
+		 keepfiles: 7
+		 permissions: 0644
+
+	# systemctl restart filebeat
+	# systemctl enable filebeat
+	# /usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"	--> Filebeat Status.
+
+
+
+### Reference ### 
+
+https://www.elastic.co/guide/en/elasticsearch/client/curator/current/ex_delete_indices.html
+https://github.com/bilalislam/elk-manager
+https://medium.com/@keniya.bhavya/elasticsearch-version-5-5-2-backup-restore-indices-from-s3-using-curator-a9316e2ea547
+
+https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+
+
+
+# If ELK lack of Disk Space issue. 
+
+	# On Dev Tool in Kibana
+
+		PUT .kibana/_settings
+		{
+			"index": {
+				"blocks": {
+					"read_only_allow_delete": "false"
+				}
+			}
+		}
+
+
+	# On Server Terminal
+
+		curl -X PUT "localhost:9200/filebeat-6.4.1-2019.08.24/_settings?pretty" -H 'Content-Type: application/json' -d'
+		{
+		  	"index.blocks.read_only_allow_delete": null
+		}'
+
+
+
+# To run the Logstash to port 443 https
+
+	# setcap 'cap_net_bind_service=+ep' $(readlink -f /usr/bin/java)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
