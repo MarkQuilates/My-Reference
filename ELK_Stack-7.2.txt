@@ -20,6 +20,7 @@
 		discovery.seed_hosts: ["127.0.0.1", "host2"] --> Add this in Kibana not working
 
 	# systemctl restart elasticsearch
+	# systemctl enable elasticsearch
 
 
 
@@ -41,6 +42,7 @@
 		elasticsearch.startupTimeout: 5000
 
 	# systemctl restart kibana
+	# systemctl enable kibana
 
 
 
@@ -56,7 +58,7 @@
 
 		input {
 		        beats {
-		                port => 443
+		                port => 5044
 		                ssl => true
 		                ssl_certificate => "/etc/logstash/elk1.crt"
 		                ssl_key => "/etc/logstash/elk1.key"
@@ -135,12 +137,21 @@
 	
 	# /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/pipeline.conf --config.test_and_exit		--> Check pipeline config
 	# systemctl restart logstash
+	# systemctl enable logstash
 
 
 
 ### Nginx ###
 
-	# apt install nginx 
+# How to install Nginx in Ubuntu 18.04.2
+
+	# sudo add-apt-repository ppa:ondrej/nginx
+	# sudo apt-get update
+
+	# sudo apt-get install nginx -y
+	# sudo systemctl enable nginx.service
+	# sudo nginx -v
+
 	# mkdir /etc/nginx/.htpasswd.users
 	# echo "mark:`openssl passwd -apr1`" | sudo tee -a /etc/nginx/.htpasswd.users
 
@@ -172,7 +183,7 @@
                 		proxy_hide_header Expires;
         		}
 
-        		location /dE8hoCJoyutI0roNOnsaE3UmsKdA9Cet {
+        		location /status {
                 	stub_status on;
                 	access_log off;
         		}
@@ -183,7 +194,6 @@
 	# ln -s /etc/nginx/sites-available/kibana.conf /etc/nginx/sites-enable/kibana.conf
 	# nginx -t
 	# systemctl restart nginx
-
 
 
 
@@ -331,6 +341,7 @@
 		 permissions: 0644
 
 	# systemctl restart filebeat
+	# systemctl enable filebeat
 	# /usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish"	--> Filebeat Status.
 
 
@@ -346,13 +357,32 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.htm
 
 
 
+# If ELK lack of Disk Space issue. 
+
+	# On Dev Tool in Kibana
+
+		PUT .kibana/_settings
+		{
+			"index": {
+				"blocks": {
+					"read_only_allow_delete": "false"
+				}
+			}
+		}
+
+
+	# On Server Terminal
+
+		curl -X PUT "localhost:9200/filebeat-6.4.1-2019.08.24/_settings?pretty" -H 'Content-Type: application/json' -d'
+		{
+		  	"index.blocks.read_only_allow_delete": null
+		}'
 
 
 
+# To run the Logstash to port 443 https
 
-
-
-
+	# setcap 'cap_net_bind_service=+ep' $(readlink -f /usr/bin/java)
 
 
 
