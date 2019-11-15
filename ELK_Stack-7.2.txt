@@ -152,7 +152,6 @@
 	# sudo systemctl enable nginx.service
 	# sudo nginx -v
 
-	# mkdir /etc/nginx/.htpasswd.users
 	# echo "mark:`openssl passwd -apr1`" | sudo tee -a /etc/nginx/.htpasswd.users
 
 	# vi /etc/nginx/sites-available/kibana.conf
