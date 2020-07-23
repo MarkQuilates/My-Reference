@@ -1,6 +1,6 @@
 define host{
         use                     windows-server
-        host_name               Abbott_DB02
+        host_name               DB02
         alias                   abtentdb02
         address                 10.0.115.24
         contact_groups          noc
@@ -9,14 +9,14 @@ define host{
 
 define service{
         use                     generic-service2
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     PING
         check_command           check_ping!100.0,20%!500.0,60%
 }
 
 define service{
         use                     generic-service2
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     NSClient++ Version
         check_command           check_nt_abbott!CLIENTVERSION
 }
@@ -24,7 +24,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     CPU Load
         check_command           check_nt_abbott!CPULOAD!-l 5,75,90
 }
@@ -32,7 +32,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage C:\ System
         check_command           check_nt_abbott!USEDDISKSPACE!-l C -w 80% -c 90%
 }
@@ -40,7 +40,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Uptime
         check_command           check_nt_abbott!UPTIME!days
 }
@@ -49,7 +49,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage D:\ Backup
         check_command           check_nt_abbott!USEDDISKSPACE!-l D -w 80% -c 90%
 }
@@ -57,7 +57,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage F:\ TempDB_Data
         check_command           check_nt_abbott!USEDDISKSPACE!-l F -w 80% -c 90%
 }
@@ -65,7 +65,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage G:\ TempDB_Log
         check_command           check_nt_abbott!USEDDISKSPACE!-l G -w 80% -c 90%
 }
@@ -73,7 +73,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage H:\ DB_Log
         check_command           check_nt_abbott!USEDDISKSPACE!-l H -w 80% -c 90%
 }
@@ -81,7 +81,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage I:\ DB_Data1
         check_command           check_nt_abbott!USEDDISKSPACE!-l I -w 80% -c 90%
 }
@@ -89,7 +89,7 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage J:\ DB_Data2
         check_command           check_nt_abbott!USEDDISKSPACE!-l J -w 80% -c 90%
 }
@@ -97,28 +97,28 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage K:\ DB_Data3
         check_command           check_nt_abbott!USEDDISKSPACE!-l K -w 80% -c 90%
 }
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage L:\ DB_Data4
         check_command           check_nt_abbott!USEDDISKSPACE!-l L -w 80% -c 90%
 }
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage M:\ DB_Data5
         check_command           check_nt_abbott!USEDDISKSPACE!-l M -w 80% -c 90%
 }
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage Y:\ Full_Backup
         check_command           check_nt_abbott!USEDDISKSPACE!-l Y -w 80% -c 90%
 }
@@ -126,14 +126,14 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage Q:\ Quorum
         check_command           check_nt_abbott!USEDDISKSPACE!-l Q -w 80% -c 90%
 }
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Storage Z:\ Diff_Log_Backup
         check_command           check_nt_abbott!USEDDISKSPACE!-l Z -w 80% -c 90%
 }
@@ -144,14 +144,14 @@ define service{
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Memory - Physical
         check_command           check_snmp_memory_pm.sh! -H 10.0.115.24 -C ph1lw3b123 -w 96 -c 98
 }
 
 define service{
         use                     generic-service2,srv-pnp
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     Memory - Swap
         check_command           check_snmp_memory_swap.sh! -H 10.0.115.24 -C ph1lw3b123 -w 80 -c 90
 }
@@ -160,14 +160,14 @@ define service{
 
 define service{
         use                     generic-service2
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     SQL Server Agent
         check_command           check_nt_abbott1!ph1lw3b123!SERVICESTATE!-d SHOWALL -l SQLSERVERAGENT -t 30
 }
 
 define service{
         use                     generic-service2
-        host_name               Abbott_DB02
+        host_name               DB02
         service_description     MSSQLSERVER
         check_command           check_nt_abbott1!ph1lw3b123!SERVICESTATE!-d SHOWALL -l MSSQLSERVER -t 30
 }
